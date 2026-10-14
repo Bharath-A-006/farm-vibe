@@ -7,6 +7,33 @@ import { tx } from '../data';
 import { I } from '../icons';
 
 const ID_TYPES = ['Aadhaar', 'Voter ID', 'PAN Card', 'Driving Licence', 'Passport'];
+const GUIDE_LANGS = ['Tamil', 'English', 'Hindi', 'Malayalam', 'Telugu'];
+
+export function GuideEditor() {
+  const { user, guides, updateGuideSelf } = useDB();
+  const me = guides.find(g => g.userId === user?.id);
+  const [village, setVillage] = useState(me?.village || '');
+  const [langs, setLangs] = useState<string[]>(me?.languages || ['Tamil']);
+  const [exp, setExp] = useState(me?.experience || '');
+  if (!me) return null;
+  const toggleL = (l: string) => setLangs(s => s.includes(l) ? s.filter(x => x !== l) : [...s, l]);
+  return (
+    <>
+      <label>Base village / town</label>
+      <select className="input" value={village} onChange={e => setVillage(e.target.value)}>
+        {PLACES.map(p => <option key={p}>{p}</option>)}
+      </select>
+      <label>Languages known</label>
+      <div>{GUIDE_LANGS.map(l => <span key={l} className={`pill-sel ${langs.includes(l) ? 'on' : ''}`} onClick={() => toggleL(l)}>{l}</span>)}</div>
+      <label>Experience</label><input className="input" value={exp} onChange={e => setExp(e.target.value)} placeholder="e.g. 5 yrs • 120 tours" />
+      <br /><button className="btn btn-g btn-sm" onClick={() => {
+        if (!langs.length) { alert('Pick at least one language.'); return; }
+        updateGuideSelf({ village: village || me.village, languages: langs, experience: exp });
+        alert('Profile updated!');
+      }}>Save my updates</button>
+    </>
+  );
+}
 
 export function IdProofCard() {
   const { user, submitIdProof } = useDB();
@@ -41,7 +68,7 @@ export function Farmer() {
   const db = useDB();
   const { user, farms, bookings, notifs, lang } = db;
   const [tab, setTab] = useState('farms');
-  const [nf, setNf] = useState({ name: '', region: PLACES[0], crop: '', price: '799', capacity: '25', desc: '' });
+  const [nf, setNf] = useState({ name: '', region: PLACES[0], crop: '', price: '2999', capacity: '25', desc: '', img: '' });
   const [cmp, setCmp] = useState({ category: 'Booking / visitor issue', subject: '', detail: '', bookingId: '' });
   if (!user || user.role !== 'farmer') return <div className="wrap"><div className="alert alert-r">Farmer login required. <Link to="/login">Login</Link></div></div>;
   const myFarms = farms.filter(f => f.farmerId === user.id || f.farmerName === user.name);
@@ -73,16 +100,30 @@ export function Farmer() {
           <h3>Add a farm (goes to Admin verification)</h3>
           <div className="card"><div className="card-b">
             <div className="row"><div><label>Farm name</label><input className="input" value={nf.name} onChange={e => setNf({ ...nf, name: e.target.value })} /></div>
-              <div style={{ flex: 1 }}><label>Region (pick a place)</label><select className="input" value={nf.region} onChange={e => setNf({ ...nf, region: e.target.value })}>{PLACES.map(p => <option key={p}>{p}</option>)}</select></div>
+              <div style={{ flex: 1 }}><label>Region — type or pick a district</label>
+                <input className="input" list="fv-districts" value={nf.region} onChange={e => setNf({ ...nf, region: e.target.value })} placeholder="Start typing…" />
+                <datalist id="fv-districts">{PLACES.map(p => <option key={p} value={p} />)}</datalist>
+              </div>
               <div><label>Crop</label><input className="input" value={nf.crop} onChange={e => setNf({ ...nf, crop: e.target.value })} /></div></div>
+            <label>Farm photos (tourists see these in Explore)</label>
+            <input type="file" accept="image/*" onChange={e => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              if (f.size > 1_200_000) { alert('Photo under 1.2 MB please.'); return; }
+              const r = new FileReader();
+              r.onload = () => setNf({ ...nf, img: String(r.result) });
+              r.readAsDataURL(f);
+            }} />
+            {nf.img && <img src={nf.img} alt="preview" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 12, marginTop: 8 }} />}
             <div className="row"><div><label>Price / person (INR)</label><input className="input" value={nf.price} onChange={e => setNf({ ...nf, price: e.target.value })} /></div>
               <div><label>≈ USDT</label><input className="input" disabled value={usdt(+nf.price || 0)} /></div>
               <div><label>Capacity</label><input className="input" value={nf.capacity} onChange={e => setNf({ ...nf, capacity: e.target.value })} /></div></div>
             <div className="alert alert-g">Tourists will see <b>Rs.{+nf.price || 0} ≈ {usdt(+nf.price || 0)} USDT</b> per person.</div>
             <label>Description</label><textarea className="input" value={nf.desc} onChange={e => setNf({ ...nf, desc: e.target.value })} />
             <br /><button className="btn btn-g" onClick={() => {
-              if (!nf.name) { alert('Farm name required'); return; }
-              db.addFarm({ id: `farm-${Date.now()}`, name: nf.name, region: nf.region, crop: nf.crop || 'Mixed', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop', rating: 4.5, pricePerDay: +nf.price || 799, capacity: +nf.capacity || 20, activities: ['Farm walk', 'Village lunch'], facilities: ['Parking', 'Washrooms'], season: 'All season', farmerId: user.id, farmerName: user.name, verified: false, description: nf.desc });
+              if (!nf.name || !nf.region) { alert('Name + region required'); return; }
+              db.addFarm({ id: `farm-${Date.now()}`, name: nf.name, region: nf.region, crop: nf.crop || 'Mixed', image: nf.img || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop', rating: 4.5, pricePerDay: +nf.price || 2999, capacity: +nf.capacity || 20, activities: ['Farm walk', 'Village lunch'], facilities: ['Parking', 'Washrooms'], season: 'All season', farmerId: user.id, farmerName: user.name, verified: false, description: nf.desc });
+              setNf({ name: '', region: PLACES[0], crop: '', price: '2999', capacity: '25', desc: '', img: '' });
               alert('Farm submitted for Admin verification!');
             }}>Submit farm</button>
           </div></div>
@@ -136,6 +177,11 @@ export function Guide() {
             { label: 'Rating', value: '4.8' },
           ]} />
           <div className="card"><div className="card-b"><b>{me?.name}</b><div className="mut">{me?.village} • {me?.languages.join(', ')} • {me?.experience}</div></div></div>
+          <div className="card" style={{ marginTop: 12 }}><div className="card-b">
+            <h3 style={{ margin: '0 0 4px' }}>Update my details</h3>
+            <p className="mut">Keep your village, languages and experience fresh — tourists see this on every tour.</p>
+            <GuideEditor />
+          </div></div>
           <IdProofCard />
         </>}
         {tab === 'tours' && <>

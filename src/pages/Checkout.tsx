@@ -33,9 +33,9 @@ export default function Checkout() {
     if (!farm) return null;
     const a = farm.pricePerDay * adults;
     const k = Math.round(farm.pricePerDay * 0.5) * kids;
-    const t = transport ? 500 : 0;
-    const fd = food ? 250 * (adults + kids) : 0;
-    const s = stay ? 1200 : 0;
+    const t = transport ? 1500 : 0;
+    const fd = food ? 450 * (adults + kids) : 0;
+    const s = stay ? 3500 : 0;
     const sub = a + k + t + fd + s;
     const disc = Math.round(sub * promoOk);
     return { a, k, t, fd, s, sub, disc, total: sub - disc };
@@ -108,9 +108,9 @@ export default function Checkout() {
             <div className="row">{farm.activities.map(a => <label key={a} style={{ fontWeight: 400 }}><input type="checkbox" checked={acts.includes(a)} onChange={e => setActs(e.target.checked ? [...acts, a] : acts.filter(x => x !== a))} /> {a}</label>)}</div>
             <label>Optional extras</label>
             <div className="row">
-              <label style={{ fontWeight: 400 }}><input type="checkbox" checked={transport} onChange={e => setTransport(e.target.checked)} /> Transport (+Rs.500)</label>
-              <label style={{ fontWeight: 400 }}><input type="checkbox" checked={food} onChange={e => setFood(e.target.checked)} /> Food (+Rs.250/person)</label>
-              <label style={{ fontWeight: 400 }}><input type="checkbox" checked={stay} onChange={e => setStay(e.target.checked)} /> Stay (+Rs.1200)</label>
+              <label style={{ fontWeight: 400 }}><input type="checkbox" checked={transport} onChange={e => setTransport(e.target.checked)} /> Transport (+Rs.1500)</label>
+              <label style={{ fontWeight: 400 }}><input type="checkbox" checked={food} onChange={e => setFood(e.target.checked)} /> Food (+Rs.450/person)</label>
+              <label style={{ fontWeight: 400 }}><input type="checkbox" checked={stay} onChange={e => setStay(e.target.checked)} /> Stay (+Rs.3500)</label>
             </div>
           </div></div>}
 

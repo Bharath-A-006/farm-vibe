@@ -16,7 +16,7 @@ interface Filters {
   tags: string[];
 }
 
-const DEF: Filters = { maxPrice: 1500, minRating: 0, durations: [], times: [], langs: [], tags: [] };
+const DEF: Filters = { maxPrice: 10000, minRating: 0, durations: [], times: [], langs: [], tags: [] };
 const TAG_OPTS = ['Free cancellation', 'Deals', 'Likely to Sell Out', 'Seasonal'];
 const DUR_OPTS = ['Up to 5 hrs', '6–7 hrs', 'Full day (8+ hrs)'];
 const TIME_OPTS = ['Morning', 'Afternoon', 'Full Day'];
@@ -106,7 +106,7 @@ export function Farms() {
     });
   }, [farms, region, fl, quick]);
 
-  const activeN = fl.durations.length + fl.times.length + fl.langs.length + fl.tags.length + (fl.minRating > 0 ? 1 : 0) + (fl.maxPrice < 1500 ? 1 : 0);
+  const activeN = fl.durations.length + fl.times.length + fl.langs.length + fl.tags.length + (fl.minRating > 0 ? 1 : 0) + (fl.maxPrice < 10000 ? 1 : 0);
 
   return (
     <div className="wrap">
@@ -164,7 +164,7 @@ export function Farms() {
             <button className="btn btn-o btn-sm" onClick={() => setDrawer(false)}>{tx(lang, 'close')}</button>
           </div>
           <h3>{tx(lang, 'maxPrice')}: Rs.{fl.maxPrice}</h3>
-          <input type="range" min={500} max={1500} step={50} value={fl.maxPrice} onChange={e => setFl({ ...fl, maxPrice: +e.target.value })} />
+          <input type="range" min={1000} max={10000} step={250} value={fl.maxPrice} onChange={e => setFl({ ...fl, maxPrice: +e.target.value })} />
           <h3>{tx(lang, 'rating')}</h3>
           <div>{[0, 4, 4.5, 4.8].map(r => (
             <span key={r} className={`pill-sel ${fl.minRating === r ? 'on' : ''}`} onClick={() => setFl({ ...fl, minRating: r })}>{r === 0 ? tx(lang, 'any') : `${r}★ & up`}</span>
@@ -196,9 +196,9 @@ export function Plans() {
       <p className="mut">AI Trip Planner in the tourist dashboard personalises these. A plan is not a booking.</p>
       <div className="grid3">
         {[
-          { d: '1-Day • Rs.999', t: 'Farm Fresh Escape', pts: ['Farm walk + 2 activities', 'Banana-leaf lunch', 'Guide included'] },
-          { d: '2-Day • Rs.2499', t: 'Agro Trail + Farm Stay', pts: ['2 farms + 1 night stay', 'All meals + campfire', 'Transport optional'] },
-          { d: '3-Day • Rs.3999', t: 'Village Immersion', pts: ['3 farms + 2 nights stay', 'Folk evening', 'Certified guide'] },
+          { d: '1-Day • Rs.3,499', t: 'Farm Fresh Escape', pts: ['Farm walk + 2 activities', 'Banana-leaf lunch', 'Guide included'] },
+          { d: '2-Day • Rs.8,499', t: 'Agro Trail + Farm Stay', pts: ['2 farms + 1 night stay', 'All meals + campfire', 'Transport optional'] },
+          { d: '3-Day • Rs.13,499', t: 'Village Immersion', pts: ['3 farms + 2 nights stay', 'Folk evening', 'Certified guide'] },
         ].map((p, i) => (
           <div className={`card hover ${i === 0 ? 'anim' : i === 1 ? 'anim-1' : 'anim-2'}`} key={p.t}><div className="card-b"><span className="chip gold">{p.d}</span><h3>{p.t}</h3>{p.pts.map(x => <div key={x} style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '4px 0' }}><span style={{ color: 'var(--green)', display: 'inline-flex' }}>{I.check({ size: 15 })}</span>{x}</div>)}<br /><Link to="/signup"><button className="btn btn-g btn-sm">Start Planning</button></Link></div></div>
         ))}

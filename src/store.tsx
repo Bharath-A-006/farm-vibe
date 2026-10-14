@@ -34,6 +34,7 @@ interface DB {
   toggleFav: (farmId: string) => void;
   submitIdProof: (idType: string, idNumber: string, idDesc: string) => void;
   verifyId: (userId: string, ok: boolean) => void;
+  updateGuideSelf: (patch: { village?: string; languages?: string[]; experience?: string }) => void;
 }
 
 const Ctx = createContext<DB | null>(null);
@@ -146,6 +147,16 @@ export function Provider({ children }: { children: React.ReactNode }) {
         else notify(userId, 'Identity verification was rejected. Please resubmit clear details.');
         return { ...x, idStatus: ok ? 'verified' as const : 'rejected' as const };
       }));
+    },
+    updateGuideSelf: (patch) => {
+      if (!user) return;
+      setGuides(g => g.map(x => x.userId === user.id ? { ...x, ...patch } : x));
+      const upatch: Partial<User> = {};
+      if (patch.village) upatch.village = patch.village;
+      if (patch.languages) upatch.languages = patch.languages;
+      setUsers(s => s.map(x => x.id === user.id ? { ...x, ...upatch } : x));
+      setUser({ ...user, ...upatch });
+      notify('u-admin', `Guide ${user.name} updated their profile.`);
     },
     login: (id, pass) => {
       const u = users.find(x => x.email === id || x.phone === id);

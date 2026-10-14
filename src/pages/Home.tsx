@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FARMS, PLANS, HERO_IMG, FARMERS_SHOW, GUIDES_SHOW, STR, tx } from '../data';
+import { FARMS, PLANS, HERO_IMG, STR, tx } from '../data';
 import { ALL_REGIONS } from '../enrich';
 import { useDB } from '../store';
 import { Logo } from '../components';
@@ -15,7 +15,7 @@ export default function Home() {
   const [s, setS] = useState('');
   const [fRegion, setFRegion] = useState('All regions');
   const [fDate, setFDate] = useState('');
-  const [fBudget, setFBudget] = useState('1500');
+  const [fBudget, setFBudget] = useState('10000');
   const [fGuests, setFGuests] = useState('2');
   const nav = useNavigate();
   const go = () => nav(`/farms?q=${encodeURIComponent(s)}`);
@@ -60,10 +60,10 @@ export default function Home() {
         <div className="fld"><label>{tx(lang, 'visitDate')}</label><input type="date" className="input" min={todayISO()} value={fDate} onChange={e => setFDate(e.target.value)} /></div>
         <div className="fld"><label>{tx(lang, 'budget')}</label>
           <select className="input" value={fBudget} onChange={e => setFBudget(e.target.value)}>
-            <option value="700">Up to Rs.700</option>
-            <option value="900">Up to Rs.900</option>
-            <option value="1200">Up to Rs.1200</option>
-            <option value="1500">Up to Rs.1500</option>
+            <option value="3000">Up to Rs.3,000</option>
+            <option value="5000">Up to Rs.5,000</option>
+            <option value="7000">Up to Rs.7,000</option>
+            <option value="10000">Up to Rs.10,000</option>
           </select>
         </div>
         <div className="fld"><label>{tx(lang, 'guests')}</label>
@@ -105,20 +105,13 @@ export default function Home() {
         <div className="how">
           {[
             { ic: I.search({ size: 22 }), t: 'Explore farms & plans with live filters' },
-            { ic: I.bot({ size: 22 }), t: 'Gemini trip planner in English & Tamil' },
+            { ic: I.heart({ size: 22 }), t: 'Book only what you love' },
             { ic: I.card({ size: 22 }), t: 'Secure checkout with price breakup' },
-            { ic: I.shield({ size: 22 }), t: 'Admin verifies in 1 hour — visit!' },
+            { ic: I.shield({ size: 22 }), t: 'Payment verified within 1 hour' },
           ].map((x, i) => (
             <div className="card" key={i}><div className="card-b"><span style={{ color: 'var(--green)', display: 'inline-flex' }}>{x.ic}</span><p><b>Step {i + 1}.</b> {x.t}</p></div></div>
           ))}
         </div>
-
-        <h2 style={{ marginTop: 30 }}>{tx(lang, 'meetFG')}</h2>
-        <p className="mut">Real hosts with real photos — every farmer and guide sets their own profile picture.</p>
-        <h3>{tx(lang, 'farmers')}</h3>
-        <div className="people">{FARMERS_SHOW.map(p => <div className="person" key={p.name}><img src={p.img} alt={p.name} loading="lazy" /><br /><b>{p.name}</b><div className="mut">{p.place}</div></div>)}</div>
-        <h3>{tx(lang, 'guides')}</h3>
-        <div className="people">{GUIDES_SHOW.map(p => <div className="person" key={p.name}><img src={p.img} alt={p.name} loading="lazy" /><br /><b>{p.name}</b><div className="mut">{p.place}</div></div>)}</div>
 
         <h2 style={{ marginTop: 30 }}>{tx(lang, 'reviewsFaq')}</h2>
         <div className="grid3">
@@ -126,7 +119,7 @@ export default function Home() {
             <div className="card" key={a}><div className="card-b"><span className="stars">{I.star({})}{I.star({})}{I.star({})}{I.star({})}{I.star({})}</span><b style={{ display: 'block', marginTop: 6 }}>{a}</b><p className="mut">{b}</p></div></div>
           ))}
         </div>
-        {[['How is a booking confirmed?', 'Farm availability check, then payment, then Admin verification within 1 hour. A plan alone never books.'], ['Which payment methods?', 'UPI, debit/credit cards and net banking via secure gateway, verified server-side.'], ['How do farmers & guides join?', 'Only the Admin creates farmer and guide accounts. Tourists sign up publicly.'], ['Where is Admin login?', 'Private URL /panel-verify-login — never shown on the home page.']].map(([q, a]) => (
+        {[['How is a booking confirmed?', 'Check farm availability, pay securely, and Admin verifies within 1 hour. A plan alone never books.'], ['Which payment methods?', 'UPI, debit/credit cards and net banking via secure gateway, verified server-side.'], ['How do I contact my guide?', 'After payment verification, your guide\u2019s name and contact appear in My Bookings, and the guide receives your trip details for pickup coordination.'], ['How do I contact Farm Vibe support?', 'Use Help & Tickets inside your dashboard, or reach us at care@farmvibe.in / 1800-FARM-VIBE — 24/7 support.']].map(([q, a]) => (
           <div className="faq" key={q}><b>{q}</b><p className="mut">{a}</p></div>
         ))}
       </div>

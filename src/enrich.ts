@@ -23,7 +23,7 @@ export const FARM_EXTRA: Record<string, FarmExtra> = {
   'farm-pollachi': {
     durationHrs: 6, slots: ['8:00 AM', '10:30 AM', '2:00 PM'], timeOfDay: ['Morning', 'Afternoon', 'Full Day'],
     languages: ['Tamil', 'English'], tags: ['Free cancellation', 'Likely to Sell Out'],
-    dealEndsInDays: 3, mrp: 1099, sellout: true,
+    dealEndsInDays: 3, mrp: 4299, sellout: true,
     pickup: 'Pollachi Bus Stand arch — guide holds a green Farm Vibe flag. Free parking inside the farm gate.',
     mapNote: '12 km from Pollachi town, tar road till gate. Share live location on booking day.',
     included: [
@@ -47,7 +47,7 @@ export const FARM_EXTRA: Record<string, FarmExtra> = {
   'farm-ooty': {
     durationHrs: 8, slots: ['7:30 AM', '9:00 AM'], timeOfDay: ['Morning', 'Full Day'],
     languages: ['Tamil', 'English'], tags: ['Free cancellation', 'Deal'],
-    dealEndsInDays: 5, mrp: 1399,
+    dealEndsInDays: 5, mrp: 5499,
     pickup: 'Ooty Charing Cross — homestay host receives you. Private parking available.',
     mapNote: 'Steep last 2 km; transport add-on recommended for low-clearance cars.',
     included: [
@@ -92,7 +92,7 @@ export const FARM_EXTRA: Record<string, FarmExtra> = {
   'farm-kodaikanal': {
     durationHrs: 7, slots: ['9:00 AM', '2:00 PM'], timeOfDay: ['Morning', 'Afternoon', 'Full Day'],
     languages: ['Tamil', 'English'], tags: ['Free cancellation', 'Deal'],
-    dealEndsInDays: 4, mrp: 1149,
+    dealEndsInDays: 4, mrp: 4699,
     pickup: 'Kodaikanal lake junction. Camp host meets with lantern in evening slots.',
     mapNote: 'Forest-edge property; network is patchy — download offline map.',
     included: [
@@ -157,15 +157,21 @@ export const FARM_EXTRA: Record<string, FarmExtra> = {
 
 export const PROMOS: Record<string, number> = { FARM10: 0.1, VIBE15: 0.15 };
 
-export const ALL_REGIONS = ['All regions', 'Pollachi', 'Ooty', 'Thanjavur', 'Kodaikanal', 'Madurai', 'Theni'];
+// All Tamil Nadu districts (38) — home filter + farmer region picker.
+export const DISTRICTS = [
+  'Ariyalur', 'Chengalpattu', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri',
+  'Dindigul', 'Erode', 'Kallakurichi', 'Kanchipuram', 'Kanyakumari', 'Karur',
+  'Krishnagiri', 'Madurai', 'Mayiladuthurai', 'Nagapattinam', 'Namakkal', 'Nilgiris',
+  'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Ranipet', 'Salem', 'Sivaganga',
+  'Tenkasi', 'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli',
+  'Tirupathur', 'Tiruppur', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur', 'Vellore',
+  'Viluppuram', 'Virudhunagar',
+];
+export const ALL_REGIONS = ['All regions', ...DISTRICTS];
 export const ALL_LANGS = ['Tamil', 'English'];
 
-// Farmer region picker — curated Tamil Nadu farm destinations.
-export const PLACES = [
-  'Pollachi, Tamil Nadu', 'Ooty, Nilgiris', 'Thanjavur, Delta', 'Kodaikanal Hills',
-  'Madurai', 'Theni, Cumbum Valley', 'Coimbatore', 'Erode', 'Salem', 'Trichy',
-  'Kanyakumari', 'Courtallam', 'Yercaud', 'Valparai', 'Dindigul', 'Karur',
-];
+// Farmer region picker — districts + popular farm belts.
+export const PLACES = [...DISTRICTS, 'Pollachi', 'Ooty', 'Kodaikanal', 'Courtallam', 'Yercaud', 'Valparai'];
 
 // Dual currency: INR + USDT (demo rate; live rate via payment provider in production).
 export const USDT_RATE = 83.5;

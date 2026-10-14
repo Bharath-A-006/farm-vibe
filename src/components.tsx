@@ -9,6 +9,12 @@ import { tx } from './data';
     farm-vibe/public/logo.png). BASE_URL-aware so it works on localhost AND file://.
     Falls back to the leaf mark if the file is missing. */
 const LOGO_SRC = `${(import.meta as any).env.BASE_URL}logo.png`;
+
+/** In-app anchor scroll that never leaves the app route (no 404 on hosted subpaths). */
+export function scrollToId(id: string) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 export function Logo({ size = 48, cls = '' }: { size?: number; cls?: string }) {
   const [ok, setOk] = useState(true);
   if (ok) return <img src={LOGO_SRC} alt="Farm Vibe logo" className={cls} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }} onError={() => setOk(false)} />;
@@ -36,8 +42,8 @@ export function Navbar() {
             <NavLink to="/farms" className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'explore')}</NavLink>
             <NavLink to="/plans" className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'plans')}</NavLink>
           </>}
-          <a href="/#about">{tx(lang, 'about')}</a>
-          <a href="/#contact">{tx(lang, 'contact')}</a>
+          <a href="#/" onClick={e => { e.preventDefault(); nav('/'); setTimeout(() => scrollToId('about'), 80); }}>{tx(lang, 'about')}</a>
+          <a href="#/" onClick={e => { e.preventDefault(); nav('/'); setTimeout(() => scrollToId('contact'), 80); }}>{tx(lang, 'contact')}</a>
           <button className="btn btn-o btn-sm" onClick={() => setLang(lang === 'en' ? 'ta' : 'en')}><span style={{ display: 'inline-flex' }}>{I.globe({ size: 15 })}</span>{lang === 'en' ? 'தமிழ்' : 'English'}</button>
           {user && <button className="btn btn-o btn-sm" onClick={() => nav(user.role === 'tourist' ? '/tourist' : user.role === 'farmer' ? '/farmer' : user.role === 'guide' ? '/guide' : '/panel-verify')}><span style={{ display: 'inline-flex' }}>{I.bell({ size: 15 })}</span>{unread > 0 ? `(${unread})` : ''} {tx(lang, 'dashboard')}</button>}
           {!user && <><Link to="/login">{tx(lang, 'login')}</Link><Link to="/signup" style={{ background: '#0d6b4f', color: '#fff' }}>{tx(lang, 'signup')}</Link></>}

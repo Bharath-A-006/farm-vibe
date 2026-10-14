@@ -106,8 +106,8 @@ export function localAnswer(q: string, role: 'home' | 'tourist' | 'farmer' | 'gu
   const farmTxt = farms.map(line).join('\n');
   if (/price|cost|budget|rate|விலை/.test(t)) {
     return L === 'ta'
-      ? `கட்டண விவரம்:\n${farmTxt}\n\n1-day Rs.999 முதல், 2-day Rs.2499, 3-day Rs.3999. Transport/food/stay optional. Payment-க்கு பிறகு 1 மணி நேரத்தில் Admin verify செய்வார்.`
-      : `Pricing guide:\n${farmTxt}\n\n1-day from Rs.999, 2-day Rs.2499, 3-day Rs.3999. Transport, food and stay are optional. After payment, Admin verifies within 1 hour.`;
+      ? `கட்டண விவரம்:\n${farmTxt}\n\n1-day Rs.3499 முதல், 2-day Rs.8499, 3-day Rs.13499. Transport/food/stay optional. Payment-க்கு பிறகு 1 மணி நேரத்தில் Admin verify செய்வார்.`
+      : `Pricing guide:\n${farmTxt}\n\n1-day from Rs.999, 2-day Rs.8499, 3-day Rs.13499. Transport, food and stay are optional. After payment, Admin verifies within 1 hour.`;
   }
   if (/plan|trip|itinerary|days|1-day|2-day|3-day|நாள்|திட்டம்/.test(t)) {
     const p = PLANS.map(x => `- ${x.title} — Rs.${x.price}: ${x.itinerary.join(' > ')}`).join('\n');

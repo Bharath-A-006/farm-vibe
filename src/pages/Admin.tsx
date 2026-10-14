@@ -26,8 +26,10 @@ export default function Admin() {
 
   const pending = bookings.filter(b => b.payStatus === 'Pending Admin Verification');
   const openC = complaints.filter(c => c.status !== 'Closed' && c.status !== 'Resolved');
+  const pendingId = users.filter(u => (u.role === 'farmer' || u.role === 'guide') && u.idStatus === 'pending');
   const menu: [string, string][] = [
     ['pay', `${tx(lang, 'payments')} (${pending.length})`],
+    ['verify', `Verify (${pendingId.length})`],
     ['farms', 'Farms'],
     ['book', `${tx(lang, 'bookings')}`],
     ['users', `${tx(lang, 'users')} (${users.length})`],
@@ -72,6 +74,31 @@ export default function Admin() {
           <table className="table"><thead><tr><th>ID</th><th>Amount</th><th>Payment</th><th>Booking</th></tr></thead><tbody>
             {bookings.filter(b => b.payStatus !== 'Pending Admin Verification').map(b => <tr key={b.id}><td>{b.id}</td><td>Rs.{b.total}</td><td>{b.payStatus}</td><td>{b.bookStatus}</td></tr>)}
           </tbody></table>
+        </>}
+
+        {tab === 'verify' && <>
+          <div className="sec-h"><h2>Identity Verification — Farmers & Guides</h2></div>
+          <p className="mut">Review each person's ID proof and description, then verify or reject.</p>
+          {pendingId.length === 0 && <div className="alert alert-g">No pending verifications. All hosts verified.</div>}
+          {pendingId.map(u => (
+            <div className="card" key={u.id} style={{ marginBottom: 10 }}><div className="card-b">
+              <div className="row">
+                <Avatar u={u} size={52} />
+                <div style={{ flex: 1 }}>
+                  <b>{u.name}</b> <span className="chip blue">{u.role}</span> <span className="chip gold">ID pending</span>
+                  <div className="mut">{u.phone}{u.village ? ` • ${u.village}` : ''}</div>
+                  <div><b>ID:</b> {u.idType} {u.idNumber}</div>
+                  <p className="mut" style={{ margin: '4px 0' }}>{u.idDesc}</p>
+                </div>
+                <span className="row">
+                  <button className="btn btn-g btn-sm" onClick={() => db.verifyId(u.id, true)}>Verify</button>
+                  <button className="btn btn-o btn-sm" onClick={() => db.verifyId(u.id, false)}>Reject</button>
+                </span>
+              </div>
+            </div></div>
+          ))}
+          <h3>Verification history</h3>
+          <div className="row">{users.filter(u => (u.role === 'farmer' || u.role === 'guide') && u.idStatus && u.idStatus !== 'pending' && u.idStatus !== 'none').map(u => <span className="chip" key={u.id}>{u.name}: {u.idStatus}</span>)}</div>
         </>}
 
         {tab === 'farms' && <>
