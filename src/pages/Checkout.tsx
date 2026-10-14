@@ -157,7 +157,7 @@ export default function Checkout() {
           <div className="mut">{date || 'Select date'} • {slot || 'Select slot'}</div>
           <div className="trust"><span style={{ display: 'inline-flex' }}>{I.shield({ size: 16 })}</span>Free cancellation up to 24h</div>
           <h3>Price breakup</h3>
-          <table className="table">
+          <div className="table-scroll"><table className="table">
             <tbody>
               <tr><td>Adults × {adults}</td><td>Rs.{calc.a}</td></tr>
               {kids > 0 && <tr><td>Kids × {kids}</td><td>Rs.{calc.k}</td></tr>}
@@ -167,7 +167,7 @@ export default function Checkout() {
               {calc.disc > 0 && <tr><td>Promo off</td><td>−Rs.{calc.disc}</td></tr>}
               <tr><td><b>Total</b></td><td><b>Rs.{calc.total}</b></td></tr>
             </tbody>
-          </table>
+          </table></div>
           <label>Promo code (try FARM10)</label>
           <div className="row" style={{ flexWrap: 'nowrap' }}>
             <input className="input" value={promo} onChange={e => setPromo(e.target.value.toUpperCase())} placeholder="FARM10" />

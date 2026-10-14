@@ -71,9 +71,9 @@ export default function Admin() {
             </div></div>
           ))}
           <h3>History</h3>
-          <table className="table"><thead><tr><th>ID</th><th>Amount</th><th>Payment</th><th>Booking</th></tr></thead><tbody>
+          <div className="table-scroll"><table className="table"><thead><tr><th>ID</th><th>Amount</th><th>Payment</th><th>Booking</th></tr></thead><tbody>
             {bookings.filter(b => b.payStatus !== 'Pending Admin Verification').map(b => <tr key={b.id}><td>{b.id}</td><td>Rs.{b.total}</td><td>{b.payStatus}</td><td>{b.bookStatus}</td></tr>)}
-          </tbody></table>
+          </tbody></table></div>
         </>}
 
         {tab === 'verify' && <>

@@ -223,6 +223,24 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
 .stat-cards .card-b{text-align:center}
 .stat-cards b{font-size:22px;display:block}
+.menu-btn{display:none;border:1.5px solid var(--green);background:#fff;color:var(--green);border-radius:12px;font-size:20px;width:44px;height:44px;cursor:pointer;margin-left:auto;flex-shrink:0}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+.table-scroll .table{min-width:560px}
 @media(max-width:1020px){.pdp,.co{grid-template-columns:1fr}.book-widget{position:static}.browse-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:960px){.grid3,.grid4,.kpi{grid-template-columns:1fr 1fr}.dash{grid-template-columns:1fr}.side{flex-direction:row;overflow:auto}.stats{grid-template-columns:1fr 1fr}.footer-in{grid-template-columns:1fr 1fr}.how{grid-template-columns:1fr 1fr}.listing{grid-template-columns:1fr}.stat-cards{grid-template-columns:1fr 1fr}}
-@media(max-width:640px){.grid3,.grid4,.kpi,.how{grid-template-columns:1fr}.search{border-radius:20px;flex-direction:column}.search .btn{width:100%}.links a{padding:6px 9px;font-size:13px}.browse-grid{grid-template-columns:1fr}.bottom-bar{display:flex}.gal-main img{height:280px}.main{padding:14px}}
+/* Tablet portrait: balanced 2-column rhythm, roomier touch targets */
+@media(max-width:960px){.grid3,.grid4,.kpi{grid-template-columns:1fr 1fr}.dash{grid-template-columns:1fr}.side{flex-direction:row;overflow:auto}.stats{grid-template-columns:1fr 1fr}.footer-in{grid-template-columns:1fr 1fr}.how{grid-template-columns:1fr 1fr}.listing{grid-template-columns:1fr}.stat-cards{grid-template-columns:1fr 1fr}.hero-in{padding:64px 18px 34px}}
+/* Mobile: app-like UX — hamburger menu, stacked cards, sticky action safe-area */
+@media(max-width:640px){
+.grid3,.grid4,.kpi,.how{grid-template-columns:1fr}.search{border-radius:20px;flex-direction:column}.search .btn{width:100%}
+.menu-btn{display:grid;place-items:center}
+.links{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column;align-items:stretch;padding:12px 16px 16px;border-bottom:1px solid var(--line);box-shadow:0 20px 40px rgba(0,0,0,.12);gap:6px}
+.links.open{display:flex}
+.links a,.links .btn{justify-content:flex-start;width:100%}
+.browse-grid{grid-template-columns:1fr}.bottom-bar{display:flex}
+.pdp{padding-bottom:70px}.gal-main img{height:260px}.main{padding:14px}
+.hero-in{padding:56px 14px 30px}.hero-logo{width:72px;height:72px}
+.sec-t h2,.sec-h h2{font-size:23px}
+.btn{padding:12px 18px}.auth-form{padding:24px 18px}
+.drawer{width:100vw}.ai-panel{right:10px;left:10px;width:auto}
+input,.input,select.input,textarea.input{font-size:16px}
+}

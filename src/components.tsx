@@ -8,14 +8,14 @@ import { tx } from './data';
 /** Brand logo: uses logo.png next to the built app (drop the supplied logo file at
     farm-vibe/public/logo.png). BASE_URL-aware so it works on localhost AND file://.
     Falls back to the leaf mark if the file is missing. */
-const LOGO_SRC = `${(import.meta as any).env.BASE_URL}logo.png`;
+const LOGO_SRC = `${(import.meta as any).env.BASE_URL}logo.jpeg`;
 
 /** In-app cinematic entry: plays the Farm Vibe intro film (~7s), then reveals the site.
     Skippable. Video lives at public/intro.mp4. */
 export function IntroSplash() {
   const [show, setShow] = useState(true);
   if (!show) return null;
-  const src = `${(import.meta as any).env.BASE_URL}intro.mp4`;
+  const src = `${(import.meta as any).env.BASE_URL}intro-v3.mp4`;
   return (
     <div className="intro-veil">
       <video className="intro-video" src={src} autoPlay muted playsInline preload="auto" onEnded={() => setShow(false)} />
@@ -39,11 +39,13 @@ export function Logo({ size = 48, cls = '' }: { size?: number; cls?: string }) {
 export function Navbar() {
   const { user, logout, lang, setLang, notifs } = useDB();
   const nav = useNavigate();
+  const [open, setOpen] = useState(false);
   const unread = notifs.filter(n => user && n.userId === user.id && !n.read).length;
+  const go = (p: string) => { setOpen(false); nav(p); };
   return (
     <div className="nav">
       <div className="nav-in">
-        <Link to="/" style={{ textDecoration: 'none' }}>
+        <Link to="/" style={{ textDecoration: 'none' }} onClick={() => setOpen(false)}>
           <div className="logo">
             <div className="logo-mark"><Logo size={48} /></div>
             <div><span className="brand" style={{ fontSize: 21 }}>FARM VIBE</span> <span className="badge">AGRO-TOURISM</span>
@@ -51,18 +53,19 @@ export function Navbar() {
             </div>
           </div>
         </Link>
-        <div className="links">
-          <NavLink to="/" className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'home')}</NavLink>
+        <button className="menu-btn" onClick={() => setOpen(o => !o)} aria-label="Menu">{open ? '✕' : '☰'}</button>
+        <div className={`links ${open ? 'open' : ''}`}>
+          <NavLink to="/" onClick={() => setOpen(false)} className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'home')}</NavLink>
           {(!user || user.role === 'tourist' || user.role === 'admin') && <>
-            <NavLink to="/farms" className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'explore')}</NavLink>
-            <NavLink to="/plans" className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'plans')}</NavLink>
+            <NavLink to="/farms" onClick={() => setOpen(false)} className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'explore')}</NavLink>
+            <NavLink to="/plans" onClick={() => setOpen(false)} className={({ isActive }) => isActive ? 'on' : ''}>{tx(lang, 'plans')}</NavLink>
           </>}
-          <a href="#/" onClick={e => { e.preventDefault(); nav('/'); setTimeout(() => scrollToId('about'), 80); }}>{tx(lang, 'about')}</a>
-          <a href="#/" onClick={e => { e.preventDefault(); nav('/'); setTimeout(() => scrollToId('contact'), 80); }}>{tx(lang, 'contact')}</a>
+          <a href="#/" onClick={e => { e.preventDefault(); setOpen(false); nav('/'); setTimeout(() => scrollToId('about'), 80); }}>{tx(lang, 'about')}</a>
+          <a href="#/" onClick={e => { e.preventDefault(); setOpen(false); nav('/'); setTimeout(() => scrollToId('contact'), 80); }}>{tx(lang, 'contact')}</a>
           <button className="btn btn-o btn-sm" onClick={() => setLang(lang === 'en' ? 'ta' : 'en')}><span style={{ display: 'inline-flex' }}>{I.globe({ size: 15 })}</span>{lang === 'en' ? 'தமிழ்' : 'English'}</button>
-          {user && <button className="btn btn-o btn-sm" onClick={() => nav(user.role === 'tourist' ? '/tourist' : user.role === 'farmer' ? '/farmer' : user.role === 'guide' ? '/guide' : '/panel-verify')}><span style={{ display: 'inline-flex' }}>{I.bell({ size: 15 })}</span>{unread > 0 ? `(${unread})` : ''} {tx(lang, 'dashboard')}</button>}
-          {!user && <><Link to="/login">{tx(lang, 'login')}</Link><Link to="/signup" style={{ background: '#0d6b4f', color: '#fff' }}>{tx(lang, 'signup')}</Link></>}
-          {user && <button className="btn btn-o btn-sm" onClick={() => { logout(); nav('/'); }}><span style={{ display: 'inline-flex' }}>{I.logout({ size: 15 })}</span>{tx(lang, 'logout')}</button>}
+          {user && <button className="btn btn-o btn-sm" onClick={() => go(user.role === 'tourist' ? '/tourist' : user.role === 'farmer' ? '/farmer' : user.role === 'guide' ? '/guide' : '/panel-verify')}><span style={{ display: 'inline-flex' }}>{I.bell({ size: 15 })}</span>{unread > 0 ? `(${unread})` : ''} {tx(lang, 'dashboard')}</button>}
+          {!user && <><Link to="/login" onClick={() => setOpen(false)}>{tx(lang, 'login')}</Link><Link to="/signup" onClick={() => setOpen(false)} style={{ background: '#0d6b4f', color: '#fff' }}>{tx(lang, 'signup')}</Link></>}
+          {user && <button className="btn btn-o btn-sm" onClick={() => { setOpen(false); logout(); nav('/'); }}><span style={{ display: 'inline-flex' }}>{I.logout({ size: 15 })}</span>{tx(lang, 'logout')}</button>}
         </div>
       </div>
     </div>
