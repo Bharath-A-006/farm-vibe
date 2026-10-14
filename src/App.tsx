@@ -1,6 +1,6 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from './store';
-import { Navbar, Footer, AIAssistant } from './components';
+import { Navbar, Footer, AIAssistant, IntroSplash } from './components';
 import Home from './pages/Home';
 import { Farms, Plans } from './pages/Browse';
 import FarmDetail from './pages/FarmDetail';
@@ -14,6 +14,7 @@ export default function App() {
   return (
     <Provider>
       <HashRouter>
+        <IntroSplash />
         <Navbar />
         <Routes>
           <Route path="/" element={<><Home /><AIAssistant role="home" /></>} />

@@ -10,6 +10,21 @@ import { tx } from './data';
     Falls back to the leaf mark if the file is missing. */
 const LOGO_SRC = `${(import.meta as any).env.BASE_URL}logo.png`;
 
+/** In-app cinematic entry: plays the Farm Vibe intro film (~7s), then reveals the site.
+    Skippable. Video lives at public/intro.mp4. */
+export function IntroSplash() {
+  const [show, setShow] = useState(true);
+  if (!show) return null;
+  const src = `${(import.meta as any).env.BASE_URL}intro.mp4`;
+  return (
+    <div className="intro-veil">
+      <video className="intro-video" src={src} autoPlay muted playsInline preload="auto" onEnded={() => setShow(false)} />
+      <div className="intro-top"><Logo size={54} /><span className="brand" style={{ fontSize: 22, color: '#fff', background: 'none' }}>FARM VIBE</span></div>
+      <button className="btn btn-d btn-sm intro-skip" onClick={() => setShow(false)}>Skip intro</button>
+    </div>
+  );
+}
+
 /** In-app anchor scroll that never leaves the app route (no 404 on hosted subpaths). */
 export function scrollToId(id: string) {
   const el = document.getElementById(id);
