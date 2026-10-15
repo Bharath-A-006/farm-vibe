@@ -13,22 +13,53 @@ export function Avatar({ u, size = 92 }: { u: User; size?: number }) {
   );
 }
 
+/** Downscale any upload to a small JPEG data-URL (quota-safe for storage + cloud). */
+export function fileToPhoto(file: File, maxDim = 800, quality = 0.72): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const r = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * r));
+        const h = Math.max(1, Math.round(img.height * r));
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d')!.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(cv.toDataURL('image/jpeg', quality));
+      } catch (e) { URL.revokeObjectURL(url); reject(e); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+    img.src = url;
+  });
+}
+
 export function usePhotoUpload() {
   const db = useDB();
   const ref = useRef<HTMLInputElement>(null);
   const [err, setErr] = useState('');
   const pick = () => { setErr(''); ref.current?.click(); };
   const input = (
-    <input ref={ref} type="file" accept="image/*" hidden onChange={e => {
+    <input ref={ref} type="file" accept="image/*" hidden onChange={async e => {
       const f = e.target.files?.[0];
       if (!f) return;
-      if (f.size > 1_200_000) { setErr('Photo is large — please pick one under 1.2 MB.'); return; }
-      const r = new FileReader();
-      r.onload = () => db.updateProfile({ photo: String(r.result) });
-      r.readAsDataURL(f);
+      try {
+        const photo = await fileToPhoto(f);
+        db.updateProfile({ photo });
+      } catch { setErr('That photo could not be read. Try another one.'); }
     }} />
   );
   return { pick, input, err };
+}
+
+export function SyncBadge() {
+  const { cloud } = useDB();
+  return (
+    <span className="chip" style={cloud ? {} : { background: '#fdf3d8', color: '#7a5a14' }} title={cloud ? 'All devices sync via cloud' : 'Demo runs on this device; tabs sync live'}>
+      {cloud ? 'Cloud live' : 'Local demo'}
+    </span>
+  );
 }
 
 export function PhotoPrompt({ text }: { text: string }) {

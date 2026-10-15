@@ -27,6 +27,7 @@ export default function Checkout() {
   const [promo, setPromo] = useState('');
   const [promoOk, setPromoOk] = useState<number>(0);
   const [done, setDone] = useState<string | null>(null);
+  const [agree, setAgree] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
 
   const calc = useMemo(() => {
@@ -129,6 +130,15 @@ export default function Checkout() {
             <p><b>{contact.name}</b> • {contact.email} • {contact.code} {contact.phone}</p>
             <p className="mut">{date} • {slot} • {adults} adults{kids ? `, ${kids} kids` : ''} • {acts.join(', ') || 'All highlights'}</p>
             <div className="alert alert-g">Paying Rs.{calc.total} via {method}. Admin verifies within 1 hour of payment.</div>
+            <h3>Terms & conditions</h3>
+            <div className="faq" style={{ fontSize: 13.5, lineHeight: 1.65 }}>
+              <div><b>1. Delays.</b> Farm visits may start up to 60 minutes late due to weather, road or village conditions. No compensation applies for such delays.</div>
+              <div><b>2. Weather & disaster.</b> If weather changes or any natural disruption occurs, the farmer may shift activities, timings or the visit spot for safety. The visit continues with the best available alternative.</div>
+              <div><b>3. Farmer-side changes.</b> If the farmer faces an issue (crop, cattle, labour), activities or the farm spot may be replaced with an equivalent experience decided by the host.</div>
+              <div><b>4. Refunds.</b> There is <b>no refund</b> for completed, delayed, rescheduled or disaster-affected visits. A full refund applies <b>only</b> when you cancel within <b>18 hours of booking</b>.</div>
+              <div><b>5. Cancellation.</b> Cancel anytime from My Bookings. Refund is processed to the original payment method only inside the 18-hour window.</div>
+            </div>
+            <label style={{ fontWeight: 400 }}><input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} /> I have read and agree to the terms & conditions above.</label>
           </div></div>}
 
           <div className="row" style={{ marginTop: 12 }}>
@@ -141,6 +151,7 @@ export default function Checkout() {
             }}>{tx(db.lang, 'continue')}</button>}
             {step === 3 && <button className="btn btn-g" onClick={() => {
               if (!date || date < today) { alert('Please pick today or a future date.'); setStep(1); return; }
+              if (!agree) { alert('Please accept the terms & conditions to continue.'); return; }
               const nb = db.makeBooking({
                 touristId: db.user!.id, touristName: contact.name, touristPhone: `${contact.code} ${contact.phone}`, farmId: farm.id, farmName: farm.name,
                 date, slot, visitors: adults + kids, activities: acts, transport, food, stay,
@@ -155,7 +166,7 @@ export default function Checkout() {
           <img src={farm.image} alt="" className="sum-thumb" />
           <b style={{ display: 'block', marginTop: 8 }}>{farm.name}</b>
           <div className="mut">{date || 'Select date'} • {slot || 'Select slot'}</div>
-          <div className="trust"><span style={{ display: 'inline-flex' }}>{I.shield({ size: 16 })}</span>Free cancellation up to 24h</div>
+          <div className="trust"><span style={{ display: 'inline-flex' }}>{I.shield({ size: 16 })}</span>Free cancellation within 18h of booking</div>
           <h3>Price breakup</h3>
           <div className="table-scroll"><table className="table">
             <tbody>

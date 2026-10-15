@@ -39,6 +39,7 @@ function Card({ f, idx }: { f: Farm; idx: number }) {
         <img src={imgs[gi]} alt={f.name} loading="lazy" />
         <div className="bdg">
           {isNew && <span className="deal">New from farmer</span>}
+          {f.shop?.available && <span className="free">Farm shop</span>}
           {ex?.sellout && <span className="sell">Likely to Sell Out</span>}
           {ex?.mrp && <span className="deal">Special Offer</span>}
           {ex?.tags.includes('Free cancellation') && <span className="free">Free cancellation</span>}
@@ -57,7 +58,7 @@ function Card({ f, idx }: { f: Farm; idx: number }) {
         <div className="mut"><span style={{ display: 'inline-flex', verticalAlign: -3 }}>{I.pin({ size: 14 })}</span> {f.region} • {f.crop}</div>
         <div className="hl">
           <span><span style={{ display: 'inline-flex' }}>{I.clock({ size: 14 })}</span>{ex?.durationHrs || 6} hrs</span>
-          <span><span style={{ display: 'inline-flex' }}>{I.shield({ size: 14 })}</span>Free cancellation 24h</span>
+          <span><span style={{ display: 'inline-flex' }}>{I.shield({ size: 14 })}</span>Free cancellation 18h</span>
           <span className="stars">{I.star({})} {f.rating} <span className="mut">({revs.length} reviews)</span></span>
         </div>
         <div className="mut" style={{ marginBottom: 6 }}>{f.activities.slice(0, 3).join(' • ')}</div>

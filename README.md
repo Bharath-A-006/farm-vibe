@@ -1,4 +1,4 @@
-# 🌾 Farm Vibe — Every Season. A New Experience.
+# 🌾 VAYALOO — From the Soil to the Soul.
 
 Fresh build. Natural farm photography (Unsplash) — no AI images. Free AI (no API key).
 
@@ -12,8 +12,8 @@ Fresh build. Natural farm photography (Unsplash) — no AI images. Free AI (no A
 **1. VS Code (recommended)**
 - VS Code → Open Folder → select the `farm-vibe` folder (not the parent).
 - First time: Terminal → `npm install`
-- Press `Ctrl+Shift+B` → run task **"Farm Vibe: run (dev)"**, OR Terminal → `npm run dev`
-- Or press `F5` → **"Farm Vibe: open in Edge/Chrome"** (starts server + opens browser automatically).
+- Press `Ctrl+Shift+B` → run task **"VAYALOO: run (dev)"**, OR Terminal → `npm run dev`
+- Or press `F5` → **"VAYALOO: open in Edge/Chrome"** (starts server + opens browser automatically).
 - Open http://localhost:5175 (note: URLs now look like `/#/farms` — same app, works everywhere).
 
 **2. Any terminal (PowerShell / CMD / bash)**
@@ -49,9 +49,9 @@ Open http://localhost:5175
 | Role | Login |
 |---|---|
 | Tourist | `divya@demo.in` / `demo123` (or Sign Up — tourists only) |
-| Farmer | `9842000111` / `farm123` (Admin-created) |
-| Guide | `9751000111` / `guide123` (Admin-created) |
-| Admin (private) | http://localhost:5175/panel-verify-login — `admin@farmvibe.in` / `admin123` |
+| Farmer | `9842000111` / `123456` + 8 more farmers `9842000222`–`9842000999` / `123456` |
+| Guide | `9751000111` / `123456` + 5 more guides `9751000222`–`9751000666` / `123456` |
+| Admin (private) | http://localhost:5175/panel-verify-login — `admin@vayaloo.in` / `admin123` |
 
 Admin link is NOT on home page (by rule).
 

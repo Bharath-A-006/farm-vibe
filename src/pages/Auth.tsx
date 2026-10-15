@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDB } from '../store';
 import { roleHome } from '../store';
-import { HERO_IMG } from '../data';
 
 // After login/signup: if the user started a trip as a guest, continue straight to checkout.
 function continueTrip(u: { role: string } | undefined, nav: (p: string) => void) {
@@ -23,13 +22,15 @@ function continueTrip(u: { role: string } | undefined, nav: (p: string) => void)
 }
 
 function Shell({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
+  const vid = `${(import.meta as any).env.BASE_URL}login.mp4`;
   return (
     <div className="wrap">
       <div className="auth-split">
-        <div className="auth-visual" style={{ backgroundImage: `url(${HERO_IMG})` }}>
+        <div className="auth-visual">
+          <video src={vid} autoPlay muted loop playsInline preload="auto" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           <div>
-            <div className="brand">FARM VIBE</div>
-            <p style={{ fontStyle: 'italic', color: '#e8c46a', margin: '6px 0' }}>“Every Season. A New Experience.”</p>
+            <div className="brand">VAYALOO</div>
+            <p style={{ fontStyle: 'italic', color: '#e8c46a', margin: '6px 0' }}>“From the Soil to the Soul.”</p>
             <p style={{ color: '#e8f3ec', fontSize: 14 }}>Real farmers, scenic trails and certified guides — verified stays, secure payments, 1-hour confirmation.</p>
           </div>
         </div>
@@ -75,7 +76,7 @@ export function Signup() {
   const [err, setErr] = useState('');
   const nav = useNavigate();
   return (
-    <Shell title="Join Farm Vibe" sub="Tourist accounts only. Farmers and guides receive Admin-created logins.">
+    <Shell title="Join VAYALOO" sub="Tourist accounts only. Farmers and guides receive Admin-created logins.">
       <label>Full name</label><input className="input" value={f.name} onChange={e => setF({ ...f, name: e.target.value })} placeholder="Your name" />
       <div className="row" style={{ flexWrap: 'nowrap' }}>
         <div style={{ flex: 1 }}><label>Email</label><input className="input" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} placeholder="you@mail.com" /></div>
@@ -102,7 +103,7 @@ export function AdminLogin() {
   const nav = useNavigate();
   return (
     <Shell title="Private Admin Login" sub="Restricted URL. Strong authentication with server-side role check.">
-      <label>Admin email</label><input className="input" value={id} onChange={e => setId(e.target.value)} placeholder="admin@farmvibe.in" />
+      <label>Admin email</label><input className="input" value={id} onChange={e => setId(e.target.value)} placeholder="admin@vayaloo.in" />
       <label>Password</label><input className="input" type="password" value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === 'Enter' && id && pass && null} />
       {err && <div className="alert alert-r">{err}</div>}
       <br />
@@ -111,7 +112,7 @@ export function AdminLogin() {
         if (e) { setErr(e); return; }
         setTimeout(() => nav('/panel-verify'), 100);
       }}>Secure login</button>
-      <p className="mut">Demo: admin@farmvibe.in / admin123</p>
+      <p className="mut">Demo: admin@vayaloo.in / admin123</p>
     </Shell>
   );
 }

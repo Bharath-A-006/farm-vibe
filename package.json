@@ -1,7 +1,7 @@
 {
   "name": "farm-vibe",
   "version": "1.0.0",
-  "description": "Farm Vibe — Every Season. A New Experience. Farm tourism platform.",
+  "description": "VAYALOO — From the Soil to the Soul. Farm tourism platform.",
   "type": "module",
   "scripts": {
     "dev": "vite --host --port 5175 --strictPort",

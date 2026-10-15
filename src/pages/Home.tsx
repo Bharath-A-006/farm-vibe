@@ -30,7 +30,7 @@ export default function Home() {
         <div className="hero-in">
           <span className="pill"><span className="dot-live" />Agro-Tourism & Village Immersion</span>
           <div style={{ marginTop: 16 }}><Logo size={92} cls="hero-logo" /></div>
-          <h1>FARM VIBE</h1>
+          <h1>VAYALOO</h1>
           <div className="tag serif">“{t('tagline')}”</div>
           <p className="sub">{t('heroSub')}</p>
           <div className="search">
@@ -119,7 +119,7 @@ export default function Home() {
             <div className="card" key={a}><div className="card-b"><span className="stars">{I.star({})}{I.star({})}{I.star({})}{I.star({})}{I.star({})}</span><b style={{ display: 'block', marginTop: 6 }}>{a}</b><p className="mut">{b}</p></div></div>
           ))}
         </div>
-        {[['How is a booking confirmed?', 'Check farm availability, pay securely, and Admin verifies within 1 hour. A plan alone never books.'], ['Which payment methods?', 'UPI, debit/credit cards and net banking via secure gateway, verified server-side.'], ['How do I contact my guide?', 'After payment verification, your guide\u2019s name and contact appear in My Bookings, and the guide receives your trip details for pickup coordination.'], ['How do I contact Farm Vibe support?', 'Use Help & Tickets inside your dashboard, or reach us at care@farmvibe.in / 1800-FARM-VIBE — 24/7 support.']].map(([q, a]) => (
+        {[['How is a booking confirmed?', 'Check farm availability, pay securely, and Admin verifies within 1 hour. A plan alone never books.'], ['Which payment methods?', 'UPI, debit/credit cards and net banking via secure gateway, verified server-side.'], ['How do I contact my guide?', 'After payment verification, your guide\u2019s name and contact appear in My Bookings, and the guide receives your trip details for pickup coordination.'], ['How do I contact VAYALOO support?', 'Use Help & Tickets inside your dashboard, or reach us at care@vayaloo.in / 1800-VAYALOO — 24/7 support.']].map(([q, a]) => (
           <div className="faq" key={q}><b>{q}</b><p className="mut">{a}</p></div>
         ))}
       </div>

@@ -92,6 +92,11 @@ export default function FarmDetail() {
             <div className="grid3">{farm.activities.map(a => <div className="card" key={a}><div className="card-b" style={{ display: 'flex', gap: 9, alignItems: 'center' }}><span style={{ color: 'var(--green)', display: 'inline-flex' }}>{I.leaf({ size: 17 })}</span><b>{a}</b></div></div>)}</div>
             <h3>Facilities</h3>
             <div className="row">{farm.facilities.map(f2 => <span className="chip blue" key={f2}>{f2}</span>)}</div>
+            {farm.shop?.available && <div className="card" style={{ marginTop: 12, border: '1.5px solid var(--gold)' }}><div className="card-b">
+              <b>{farm.shop.name}</b> <span className="chip gold">Farm shop on site</span>
+              <div className="row" style={{ marginTop: 6 }}>{farm.shop.items.map(it => <span className="chip" key={it}>{it}</span>)}</div>
+              <p className="mut">Buy directly from the farmer during your visit. Pay at the shop counter.</p>
+            </div></div>}
           </>}
 
           {tabIdx === 1 && <div className="card"><div className="card-b">
@@ -118,7 +123,7 @@ export default function FarmDetail() {
 
           {tabIdx === 4 && <div className="card"><div className="card-b">
             {ex?.info.map((x, i) => <div key={i} style={{ display: 'flex', gap: 9, padding: '7px 0' }}><span style={{ color: 'var(--gold-d)', display: 'inline-flex' }}>{I.tag({ size: 15 })}</span>{x}</div>)}
-            <div className="trust"><span style={{ display: 'inline-flex' }}>{I.shield({ size: 17 })}</span>Free cancellation up to 24 hours before the visit. Full refund via original payment method.</div>
+            <div className="trust"><span style={{ display: 'inline-flex' }}>{I.shield({ size: 17 })}</span>Free cancellation within 18 hours of booking. Full refund via original payment method.</div>
           </div></div>}
 
           {tabIdx === 5 && <>

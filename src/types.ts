@@ -35,6 +35,8 @@ export interface Farm {
   farmerName: string;
   verified: boolean;
   description: string;
+  slots?: string[];
+  shop?: { name: string; items: string[]; available: boolean };
 }
 
 export interface TourPlan {
@@ -64,7 +66,8 @@ export interface Booking {
   payMethod: string;
   txnRef: string;
   payAt: string;
-  payStatus: 'Pending Admin Verification' | 'Confirmed' | 'Rejected' | 'Refund Pending' | 'Refunded';
+  createdAt: number;
+  payStatus: 'Pending Admin Verification' | 'Confirmed' | 'Rejected' | 'Refund Pending' | 'Refunded' | 'No Refund';
   bookStatus: 'Payment Verification Pending' | 'Confirmed' | 'Cancelled' | 'Completed' | 'Rejected';
   guideId?: string;
   guideName?: string;

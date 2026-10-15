@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Booking, Complaint, Farm, Guide, Notif, Role, User, Lang } from './types';
 import { FARMS } from './data';
+import { cloudReady, cloudPush, cloudPull } from './cloud';
 
 interface DB {
   users: User[];
@@ -20,7 +21,7 @@ interface DB {
   approveGuide: (id: string) => void;
   addFarm: (f: Farm) => void;
   verifyFarm: (id: string) => void;
-  makeBooking: (b: Omit<Booking, 'id' | 'txnRef' | 'payAt' | 'payStatus' | 'bookStatus'>) => Booking;
+  makeBooking: (b: Omit<Booking, 'id' | 'txnRef' | 'payAt' | 'payStatus' | 'bookStatus' | 'createdAt'>) => Booking;
   verifyPayment: (id: string, ok: boolean, reason?: string) => void;
   assignGuide: (bookingId: string, guideId: string) => void;
   completeBooking: (id: string) => void;
@@ -35,6 +36,7 @@ interface DB {
   submitIdProof: (idType: string, idNumber: string, idDesc: string) => void;
   verifyId: (userId: string, ok: boolean) => void;
   updateGuideSelf: (patch: { village?: string; languages?: string[]; experience?: string }) => void;
+  cloud: boolean;
 }
 
 const Ctx = createContext<DB | null>(null);
@@ -46,13 +48,13 @@ const uid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 7).toUppe
 function seed(): Omit<DB, 'user' | 'lang' | keyof Function> & any {
   return {
     users: [
-      { id: 'u-admin', role: 'admin', name: 'Admin', email: 'admin@farmvibe.in', password: 'admin123' },
+      { id: 'u-admin', role: 'admin', name: 'Admin', email: 'admin@vayaloo.in', password: 'admin123' },
       { id: 'u-tourist-demo', role: 'tourist', name: 'Divya', email: 'divya@demo.in', phone: '9842111122', password: 'demo123' },
-      { id: 'u-farmer-1', role: 'farmer', name: 'Murugan K.', phone: '9842000111', password: 'farm123', approved: true, idType: 'Aadhaar', idNumber: 'XXXX-XXXX-4821', idDesc: 'Pollachi coconut farmer, 22 years. 60-acre grove with heritage house.', idStatus: 'verified' },
-      { id: 'u-farmer-2', role: 'farmer', name: 'Lakshmi A.', phone: '9842000222', password: 'farm123', approved: true, idType: 'Aadhaar', idNumber: 'XXXX-XXXX-7734', idDesc: 'Ooty organic pioneer. Polyhouse vegetable farm and homestay host.', idStatus: 'verified' },
-      { id: 'u-farmer-3', role: 'farmer', name: 'Selvi R.', phone: '9842000333', password: 'farm123', approved: true, idType: 'Voter ID', idNumber: 'TN/21/XXX452', idDesc: 'Madurai jasmine grower leading a 14-member women self-help group.', idStatus: 'verified' },
-      { id: 'u-guide-1', role: 'guide', name: 'Karthik S.', phone: '9751000111', password: 'guide123', village: 'Pollachi', languages: ['Tamil', 'English'], approved: true, idType: 'Driving Licence', idNumber: 'TN38 XXXX9214', idDesc: 'Certified rural guide, 5 years, 120+ tours across Coimbatore belt.', idStatus: 'verified' },
-      { id: 'u-guide-2', role: 'guide', name: 'Divya P.', phone: '9751000222', password: 'guide123', village: 'Ooty', languages: ['Tamil', 'English'], approved: true, idType: 'Aadhaar', idNumber: 'XXXX-XXXX-2098', idDesc: 'Nature-education guide specialising in Nilgiri flora and family groups.', idStatus: 'verified' },
+      { id: 'u-farmer-1', role: 'farmer', name: 'Murugan K.', phone: '9842000111', password: '123456', approved: true, idType: 'Aadhaar', idNumber: 'XXXX-XXXX-4821', idDesc: 'Pollachi coconut farmer, 22 years. 60-acre grove with heritage house.', idStatus: 'verified' },
+      { id: 'u-farmer-2', role: 'farmer', name: 'Lakshmi A.', phone: '9842000222', password: '123456', approved: true, idType: 'Aadhaar', idNumber: 'XXXX-XXXX-7734', idDesc: 'Ooty organic pioneer. Polyhouse vegetable farm and homestay host.', idStatus: 'verified' },
+      { id: 'u-farmer-3', role: 'farmer', name: 'Selvi R.', phone: '9842000333', password: '123456', approved: true, idType: 'Voter ID', idNumber: 'TN/21/XXX452', idDesc: 'Madurai jasmine grower leading a 14-member women self-help group.', idStatus: 'verified' },
+      { id: 'u-guide-1', role: 'guide', name: 'Karthik S.', phone: '9751000111', password: '123456', village: 'Pollachi', languages: ['Tamil', 'English'], approved: true, idType: 'Driving Licence', idNumber: 'TN38 XXXX9214', idDesc: 'Certified rural guide, 5 years, 120+ tours across Coimbatore belt.', idStatus: 'verified' },
+      { id: 'u-guide-2', role: 'guide', name: 'Divya P.', phone: '9751000222', password: '123456', village: 'Ooty', languages: ['Tamil', 'English'], approved: true, idType: 'Aadhaar', idNumber: 'XXXX-XXXX-2098', idDesc: 'Nature-education guide specialising in Nilgiri flora and family groups.', idStatus: 'verified' },
     ],
     farms: FARMS,
     bookings: [],
@@ -75,18 +77,33 @@ export function Provider({ children }: { children: React.ReactNode }) {
   const [guides, setGuides] = useState<Guide[]>([]);
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [favs, setFavs] = useState<string[]>([]);
+  const pushTimer = useRef<any>(null);
+  const cloudSeen = useRef<number>(0);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS);
       if (raw) {
         const d = JSON.parse(raw);
-        setUsers(d.users); setFarms(d.farms); setBookings(d.bookings || []);
-        setComplaints(d.complaints || []); setGuides(d.guides || []); setNotifs(d.notifs || []);
+        const s = seed();
+        // Merge: keep user data (bookings etc.) but pull in any NEW seed
+        // farms/users/guides, and enforce the standard 123456 staff passwords.
+        const mergeIds = <T extends { id: string }>(old: T[] = [], fresh: T[]): T[] => [
+          ...old, ...fresh.filter(x => !old.some(o => o.id === x.id)),
+        ];
+        const usersM: User[] = mergeIds<User>(d.users || [], s.users).map(u => {
+          const su = s.users.find((x: User) => x.id === u.id);
+          if (su && (u.role === 'farmer' || u.role === 'guide')) {
+            return { ...u, password: '123456', idStatus: u.idStatus || su.idStatus, idType: u.idType || su.idType, idNumber: u.idNumber || su.idNumber, idDesc: u.idDesc || su.idDesc };
+          }
+          return u;
+        });
+        setUsers(usersM); setFarms(mergeIds(d.farms || [], s.farms)); setBookings(d.bookings || []);
+        setComplaints(d.complaints || []); setGuides(mergeIds(d.guides || [], s.guides)); setNotifs(d.notifs || []);
         setFavs(d.favs || []);
-        const su = localStorage.getItem('farmvibe_session');
-        if (su) {
-          const found = (d.users as User[]).find(x => x.id === su);
+        const sess = localStorage.getItem('farmvibe_session');
+        if (sess) {
+          const found = (usersM as User[]).find(x => x.id === sess);
           if (found) setUser(found);
         }
         return;
@@ -98,8 +115,41 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!users.length) return;
-    localStorage.setItem(LS, JSON.stringify({ users, farms, bookings, complaints, guides, notifs, favs }));
+    try {
+      const payload = JSON.stringify({ users, farms, bookings, complaints, guides, notifs, favs });
+      // ~4.5MB guard: downscaled photos keep us far below browser quota.
+      if (payload.length < 4500000) localStorage.setItem(LS, payload);
+    } catch { /* quota full: memory state keeps working for this session */ }
+    // Cross-device: push a photo-free mirror to the cloud (when configured).
+    if (cloudReady()) {
+      if (pushTimer.current) clearTimeout(pushTimer.current);
+      pushTimer.current = setTimeout(() => {
+        cloudSeen.current = Date.now();
+        cloudPush({ updatedAt: cloudSeen.current, users, farms, bookings, complaints, guides, notifs }).catch(() => {});
+      }, 2000);
+    }
   }, [users, farms, bookings, complaints, guides, notifs, favs]);
+
+  // Cross-device: pull newer cloud state every 20s (when configured).
+  useEffect(() => {
+    if (!cloudReady()) return;
+    const id = setInterval(async () => {
+      try {
+        const c = await cloudPull();
+        if (c && c.updatedAt > cloudSeen.current && Array.isArray(c.users) && Array.isArray(c.farms)) {
+          cloudSeen.current = c.updatedAt;
+          setUsers(c.users); setFarms(c.farms); setBookings(c.bookings || []);
+          setComplaints(c.complaints || []); setGuides(c.guides || []); setNotifs(c.notifs || []);
+          setUser(prev => {
+            if (!prev) return prev;
+            const still = (c.users as User[]).find(x => x.id === prev.id);
+            return still || prev;
+          });
+        }
+      } catch {}
+    }, 20000);
+    return () => clearInterval(id);
+  }, []);
 
   // Live automation: when another tab (farmer/admin/tourist) changes data,
   // this tab updates instantly — no manual refresh needed.
@@ -131,7 +181,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   const val: DB = useMemo(() => ({
     users, farms, bookings, complaints, guides, notifs, lang, user, favs,
-    setLang,
+    setLang, cloud: cloudReady(),
     toggleFav: (farmId) => setFavs(f => f.includes(farmId) ? f.filter(x => x !== farmId) : [...f, farmId]),
     submitIdProof: (idType, idNumber, idDesc) => {
       if (!user) return;
@@ -195,6 +245,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
         ...b, id: `FV-${Math.floor(1000 + Math.random() * 9000)}`,
         txnRef: `TXN${Date.now().toString().slice(-8)}`,
         payAt: new Date().toLocaleString(),
+        createdAt: Date.now(),
         payStatus: 'Pending Admin Verification',
         bookStatus: 'Payment Verification Pending',
       };
@@ -225,7 +276,15 @@ export function Provider({ children }: { children: React.ReactNode }) {
       if (g) notify(g.userId, `You are assigned to booking ${bookingId}.`);
     },
     completeBooking: (id) => setBookings(s => s.map(b => b.id === id ? { ...b, bookStatus: 'Completed' } : b)),
-    cancelBooking: (id) => setBookings(s => s.map(b => b.id === id ? { ...b, bookStatus: 'Cancelled', payStatus: 'Refund Pending' } : b)),
+    cancelBooking: (id) => setBookings(s => s.map(b => {
+      if (b.id !== id) return b;
+      // Refund ONLY within 18 hours of booking (VAYALOO policy).
+      const within = Date.now() - (b.createdAt || Date.now()) <= 18 * 60 * 60 * 1000;
+      notify(b.touristId, within
+        ? `Booking ${b.id} cancelled. Refund is being processed (within 18-hour window).`
+        : `Booking ${b.id} cancelled. Outside the 18-hour window — no refund as per terms.`);
+      return { ...b, bookStatus: 'Cancelled', payStatus: within ? 'Refund Pending' : 'No Refund' };
+    })),
     addComplaint: (c) => {
       const nc: Complaint = { ...c, id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`, createdAt: new Date().toLocaleString(), status: 'Submitted', replies: [] };
       setComplaints(s => [nc, ...s]);

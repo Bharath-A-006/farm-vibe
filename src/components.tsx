@@ -10,7 +10,7 @@ import { tx } from './data';
     Falls back to the leaf mark if the file is missing. */
 const LOGO_SRC = `${(import.meta as any).env.BASE_URL}logo.jpeg`;
 
-/** In-app cinematic entry: plays the Farm Vibe intro film (~7s), then reveals the site.
+/** In-app cinematic entry: plays the VAYALOO intro film (~7s), then reveals the site.
     Skippable. Video lives at public/intro.mp4. */
 export function IntroSplash() {
   const [show, setShow] = useState(true);
@@ -19,7 +19,7 @@ export function IntroSplash() {
   return (
     <div className="intro-veil">
       <video className="intro-video" src={src} autoPlay muted playsInline preload="auto" onEnded={() => setShow(false)} />
-      <div className="intro-top"><Logo size={54} /><span className="brand" style={{ fontSize: 22, color: '#fff', background: 'none' }}>FARM VIBE</span></div>
+      <div className="intro-top"><Logo size={54} /><span className="brand" style={{ fontSize: 22, color: '#fff', background: 'none' }}>VAYALOO</span></div>
       <button className="btn btn-d btn-sm intro-skip" onClick={() => setShow(false)}>Skip intro</button>
     </div>
   );
@@ -32,7 +32,7 @@ export function scrollToId(id: string) {
 }
 export function Logo({ size = 48, cls = '' }: { size?: number; cls?: string }) {
   const [ok, setOk] = useState(true);
-  if (ok) return <img src={LOGO_SRC} alt="Farm Vibe logo" className={cls} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }} onError={() => setOk(false)} />;
+  if (ok) return <img src={LOGO_SRC} alt="VAYALOO logo" className={cls} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }} onError={() => setOk(false)} />;
   return <>{I.leaf({ size: Math.round(size * 0.55) })}</>;
 }
 
@@ -48,8 +48,8 @@ export function Navbar() {
         <Link to="/" style={{ textDecoration: 'none' }} onClick={() => setOpen(false)}>
           <div className="logo">
             <div className="logo-mark"><Logo size={48} /></div>
-            <div><span className="brand" style={{ fontSize: 21 }}>FARM VIBE</span> <span className="badge">AGRO-TOURISM</span>
-              <small>“Every Season. A New Experience.”</small>
+            <div><span className="brand" style={{ fontSize: 21 }}>VAYALOO</span> <span className="badge">AGRO-TOURISM</span>
+              <small>“From the Soil to the Soul.”</small>
             </div>
           </div>
         </Link>
@@ -77,8 +77,8 @@ export function Footer() {
     <div className="footer" id="contact">
       <div className="footer-in">
         <div>
-          <h3 className="brand" style={{ color: '#fff', background: 'none', fontSize: 22 }}>FARM VIBE</h3>
-          <p className="mut" style={{ color: '#a9c8b8' }}>Every Season. A New Experience.<br />Real farmers, scenic trails, certified guides.<br />Support: care@farmvibe.in • 1800-FARM-VIBE</p>
+          <h3 className="brand" style={{ color: '#fff', background: 'none', fontSize: 22 }}>VAYALOO</h3>
+          <p className="mut" style={{ color: '#a9c8b8' }}>From the Soil to the Soul.<br />Real farmers, scenic trails, certified guides.<br />Support: care@vayaloo.in • 1800-VAYALOO</p>
         </div>
         <div><b>Explore</b><p>Farms<br />1/2/3-day plans<br />Farmers & Guides</p></div>
         <div><b>Help</b><p>How booking works<br />Payment verification (1 hr)<br />Complaints & refunds</p></div>
@@ -91,11 +91,12 @@ export function Footer() {
 export function AIAssistant({ role = 'home' }: { role?: 'home' | 'tourist' | 'farmer' | 'guide' }) {
   const { farms } = useDB();
   const [open, setOpen] = useState(false);
-  const [msgs, setMsgs] = useState<{ me: boolean; t: string; thoughts?: string[]; live?: boolean }[]>([{ me: false, t: 'Hello! I am the Farm Vibe assistant, powered by Gemini. I think through your question before answering — ask about farms, plans, pricing or booking, in English or Tamil.' }]);
+  const [msgs, setMsgs] = useState<{ me: boolean; t: string; thoughts?: string[]; live?: boolean }[]>([{ me: false, t: 'Hello! I am the VAYALOO assistant. I think through your question before answering — ask about farms, plans, pricing or booking, in English or Tamil.' }]);
   const [q, setQ] = useState('');
   const [al, setAl] = useState<AILang>('en');
   const [listening, setListening] = useState(false);
   const [thinkStep, setThinkStep] = useState<string | null>(null);
+  const [autoVoice, setAutoVoice] = useState(false);
 
   const ask = async (text: string) => {
     if (!text.trim() || thinkStep) return;
@@ -105,19 +106,21 @@ export function AIAssistant({ role = 'home' }: { role?: 'home' | 'tourist' | 'fa
     const ans = await aiAnswer(text, role, farms);
     setThinkStep(null);
     setMsgs(m => [...m, { me: false, t: ans.text, thoughts: ans.thoughts, live: ans.live }]);
+    if (autoVoice) speak(ans.text, detectLang(ans.text));
   };
 
   return (
     <>
-      <button className="ai-fab" onClick={() => setOpen(o => !o)} title="Farm Vibe AI assistant">{I.bot({})}</button>
+      <button className="ai-fab" onClick={() => setOpen(o => !o)} title="VAYALOO AI assistant">{I.bot({})}</button>
       {open && (
         <div className="ai-panel">
           <div className="ai-head">
-            <div className="row">Farm Vibe AI <span className="chip" style={{ background: '#ffffff22', color: '#fff' }}>Gemini</span></div>
+            <div className="row">VAYALOO AI <span className="chip" style={{ background: '#ffffff22', color: '#fff' }}>Smart assistant</span></div>
             <div className="row" style={{ marginTop: 8 }}>
               {(['en', 'ta'] as AILang[]).map(l => (
                 <button key={l} className="btn btn-sm" style={{ background: al === l ? '#12a46b' : '#ffffff2a', color: '#fff' }} onClick={() => setAl(l)}>{l === 'en' ? 'English' : 'தமிழ்'}</button>
               ))}
+              <button className="btn btn-sm" style={{ background: autoVoice ? '#e8c46a' : '#ffffff2a', color: autoVoice ? '#3d2f05' : '#fff' }} onClick={() => setAutoVoice(v => !v)} title="Voice replies">Voice: {autoVoice ? 'on' : 'off'}</button>
             </div>
           </div>
           <div className="ai-body">
@@ -125,7 +128,7 @@ export function AIAssistant({ role = 'home' }: { role?: 'home' | 'tourist' | 'fa
               <div key={i} className={m.me ? 'msg me' : 'msg ai'}>
                 {!m.me && m.live !== undefined && (
                   <span className="chip" style={{ fontSize: 10, marginBottom: 6, background: m.live ? '#e6f6ec' : '#fdf3d8', color: m.live ? '#0b5c43' : '#7a5a14' }}>
-                    {m.live ? 'Gemini live' : 'Instant reply'}
+                    {m.live ? 'AI live' : 'Instant reply'}
                   </span>
                 )}
                 <div>{m.t}</div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDB } from '../store';
 import { tx } from '../data';
 import { Avatar } from '../profile';
+import { SyncBadge } from '../profile';
 
 function overdue(payAt: string) {
   const t = new Date(payAt).getTime();
@@ -50,7 +51,7 @@ export default function Admin() {
 
   return (
     <div className="dash">
-      <div className="side"><b style={{ color: '#fff' }}>Admin Console</b><span className="mut" style={{ color: '#d9e8e1' }}>Investor-grade control</span>
+      <div className="side"><b style={{ color: '#fff' }}>Admin Console</b> <SyncBadge /><span className="mut" style={{ color: '#d9e8e1' }}>Investor-grade control</span>
         {menu.map(([k, l]) => <a key={k} className={tab === k ? 'on' : ''} href="#" onClick={e => { e.preventDefault(); setTab(k); }}>{l}</a>)}
       </div>
       <div className="main">

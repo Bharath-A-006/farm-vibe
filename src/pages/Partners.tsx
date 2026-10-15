@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDB } from '../store';
-import { ProfileHead, PhotoPrompt, Avatar } from '../profile';
+import { ProfileHead, PhotoPrompt, Avatar, SyncBadge } from '../profile';
 import { PLACES, usdt } from '../enrich';
+import { fileToPhoto } from '../profile';
 import { tx } from '../data';
 import { I } from '../icons';
 
@@ -68,7 +69,9 @@ export function Farmer() {
   const db = useDB();
   const { user, farms, bookings, notifs, lang } = db;
   const [tab, setTab] = useState('farms');
-  const [nf, setNf] = useState({ name: '', region: PLACES[0], crop: '', price: '2999', capacity: '25', desc: '', img: '' });
+  const [nf, setNf] = useState({ name: '', region: PLACES[0], crop: '', price: '2999', capacity: '25', desc: '', img: '', slots: '9:00 AM, 2:00 PM', shopAvail: false, shopName: '', shopItems: '' });
+  const [actPick, setActPick] = useState<string[]>(['Farm walk', 'Village lunch']);
+  const [actCustom, setActCustom] = useState('');
   const [cmp, setCmp] = useState({ category: 'Booking / visitor issue', subject: '', detail: '', bookingId: '' });
   if (!user || user.role !== 'farmer') return <div className="wrap"><div className="alert alert-r">Farmer login required. <Link to="/login">Login</Link></div></div>;
   const myFarms = farms.filter(f => f.farmerId === user.id || f.farmerName === user.name);
@@ -78,7 +81,7 @@ export function Farmer() {
   return (
     <div className="dash">
       <div className="side">
-        <div className="row"><Avatar u={user} size={44} /><div><b style={{ color: '#fff' }}>Farmer Studio</b><br /><span className="mut" style={{ color: '#d9e8e1' }}>{user.name}</span></div></div>
+        <div className="row"><Avatar u={user} size={44} /><div><b style={{ color: '#fff' }}>Farmer Studio</b> <SyncBadge /><br /><span className="mut" style={{ color: '#d9e8e1' }}>{user.name}</span></div></div>
         {menu.map(([k, l]) => <a key={k} className={tab === k ? 'on' : ''} href="#" onClick={e => { e.preventDefault(); setTab(k); }}>{l}</a>)}
         <div style={{ marginTop: 10 }}><b>Alerts ({notifs.filter(n => n.userId === user.id && !n.read).length})</b>{notifs.filter(n => n.userId === user.id).slice(0, 4).map(n => <div key={n.id} style={{ fontSize: 12, background: '#ffffff14', padding: 8, borderRadius: 10, marginTop: 6 }}>{n.text}</div>)}</div>
       </div>
@@ -106,15 +109,27 @@ export function Farmer() {
               </div>
               <div><label>Crop</label><input className="input" value={nf.crop} onChange={e => setNf({ ...nf, crop: e.target.value })} /></div></div>
             <label>Farm photos (tourists see these in Explore)</label>
-            <input type="file" accept="image/*" onChange={e => {
+            <input type="file" accept="image/*" onChange={async e => {
               const f = e.target.files?.[0];
               if (!f) return;
-              if (f.size > 1_200_000) { alert('Photo under 1.2 MB please.'); return; }
-              const r = new FileReader();
-              r.onload = () => setNf({ ...nf, img: String(r.result) });
-              r.readAsDataURL(f);
+              try {
+                const img = await fileToPhoto(f);
+                setNf({ ...nf, img });
+              } catch { alert('Photo could not be read. Try another.'); }
             }} />
             {nf.img && <img src={nf.img} alt="preview" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 12, marginTop: 8 }} />}
+            <label>Activities (pick + add your own)</label>
+            <div>{['Farm walk', 'Village lunch', 'Harvest demo', 'Cooking session', 'Bullock cart ride', 'Pottery', 'Honey tasting', 'Sunrise walk'].map(a => <span key={a} className={`pill-sel ${actPick.includes(a) ? 'on' : ''}`} onClick={() => setActPick(s => s.includes(a) ? s.filter(x => x !== a) : [...s, a])}>{a}</span>)}</div>
+            <div className="row" style={{ marginTop: 6, flexWrap: 'nowrap' }}>
+              <input className="input" value={actCustom} onChange={e => setActCustom(e.target.value)} placeholder="Custom activity…" />
+              <button className="btn btn-o btn-sm" onClick={() => { if (actCustom.trim() && !actPick.includes(actCustom.trim())) setActPick([...actPick, actCustom.trim()]); setActCustom(''); }}>Add</button>
+            </div>
+            <label>Time slots (comma separated)</label><input className="input" value={nf.slots} onChange={e => setNf({ ...nf, slots: e.target.value })} placeholder="9:00 AM, 2:00 PM" />
+            <label><input type="checkbox" checked={nf.shopAvail} onChange={e => setNf({ ...nf, shopAvail: e.target.checked })} /> I have a farm shop (tourists will see it)</label>
+            {nf.shopAvail && <div className="row">
+              <div style={{ flex: 1 }}><label>Shop name</label><input className="input" value={nf.shopName} onChange={e => setNf({ ...nf, shopName: e.target.value })} placeholder="e.g. Murugan Farm Store" /></div>
+              <div style={{ flex: 2 }}><label>Items (comma separated)</label><input className="input" value={nf.shopItems} onChange={e => setNf({ ...nf, shopItems: e.target.value })} placeholder="Honey, Banana chips, Pickles" /></div>
+            </div>}
             <div className="row"><div><label>Price / person (INR)</label><input className="input" value={nf.price} onChange={e => setNf({ ...nf, price: e.target.value })} /></div>
               <div><label>≈ USDT</label><input className="input" disabled value={usdt(+nf.price || 0)} /></div>
               <div><label>Capacity</label><input className="input" value={nf.capacity} onChange={e => setNf({ ...nf, capacity: e.target.value })} /></div></div>
@@ -122,8 +137,10 @@ export function Farmer() {
             <label>Description</label><textarea className="input" value={nf.desc} onChange={e => setNf({ ...nf, desc: e.target.value })} />
             <br /><button className="btn btn-g" onClick={() => {
               if (!nf.name || !nf.region) { alert('Name + region required'); return; }
-              db.addFarm({ id: `farm-${Date.now()}`, name: nf.name, region: nf.region, crop: nf.crop || 'Mixed', image: nf.img || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop', rating: 4.5, pricePerDay: +nf.price || 2999, capacity: +nf.capacity || 20, activities: ['Farm walk', 'Village lunch'], facilities: ['Parking', 'Washrooms'], season: 'All season', farmerId: user.id, farmerName: user.name, verified: false, description: nf.desc });
-              setNf({ name: '', region: PLACES[0], crop: '', price: '2999', capacity: '25', desc: '', img: '' });
+              const slots = nf.slots.split(',').map(s => s.trim()).filter(Boolean);
+              db.addFarm({ id: `farm-${Date.now()}`, name: nf.name, region: nf.region, crop: nf.crop || 'Mixed', image: nf.img || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop', rating: 4.5, pricePerDay: +nf.price || 2999, capacity: +nf.capacity || 20, activities: actPick.length ? actPick : ['Farm walk', 'Village lunch'], facilities: ['Parking', 'Washrooms'], season: 'All season', farmerId: user.id, farmerName: user.name, verified: false, description: nf.desc, slots: slots.length ? slots : undefined, shop: nf.shopAvail ? { name: nf.shopName || `${nf.name} Store`, items: nf.shopItems.split(',').map(s => s.trim()).filter(Boolean), available: true } : undefined });
+              setNf({ name: '', region: PLACES[0], crop: '', price: '2999', capacity: '25', desc: '', img: '', slots: '9:00 AM, 2:00 PM', shopAvail: false, shopName: '', shopItems: '' });
+              setActPick(['Farm walk', 'Village lunch']);
               alert('Farm submitted for Admin verification!');
             }}>Submit farm</button>
           </div></div>
@@ -164,7 +181,7 @@ export function Guide() {
   return (
     <div className="dash">
       <div className="side">
-        <div className="row"><Avatar u={user} size={44} /><div><b style={{ color: '#fff' }}>Guide Studio</b><br /><span className="mut" style={{ color: '#d9e8e1' }}>{user.name}</span></div></div>
+        <div className="row"><Avatar u={user} size={44} /><div><b style={{ color: '#fff' }}>Guide Studio</b> <SyncBadge /><br /><span className="mut" style={{ color: '#d9e8e1' }}>{user.name}</span></div></div>
         {menu.map(([k, l]) => <a key={k} className={tab === k ? 'on' : ''} href="#" onClick={e => { e.preventDefault(); setTab(k); }}>{l}</a>)}
       </div>
       <div className="main">

@@ -1,4 +1,4 @@
-// Farm Vibe AI — Gemini-first (fast path), graceful fallback to built-in brain.
+// VAYALOO AI — Gemini-first (fast path), graceful fallback to built-in brain.
 // Language: English primary, Tamil optional.
 import { FARMS, PLANS } from './data';
 import type { Farm } from './types';
@@ -55,10 +55,11 @@ export async function geminiAnswer(q: string, role: string, list: Farm[]): Promi
   const k = key();
   if (!k) return null;
   const L = detectLang(q);
+  const budget = extractBudget(q);
   const body = {
     system_instruction: {
       parts: [{
-        text: `You are the Farm Vibe assistant for Tamil Nadu farm tourism. Reply in ${L === 'ta' ? 'Tamil' : 'English'}. Be concise (under 120 words), warm and practical. Never invent farm names, prices or availability beyond this context:\n${farmContext(list)}`
+        text: `You are the VAYALOO assistant for Tamil Nadu farm tourism. Reply in ${L === 'ta' ? 'Tamil' : 'English'}. Be concise (under 120 words), warm and practical. RULE: if the user states a budget (here: ${budget ? 'Rs.' + budget : 'none stated'}), recommend ONLY farms and plans within that budget — never list everything. Never invent farm names, prices or availability beyond this context:\n${farmContext(list)}`
       }]
     },
     contents: [{ parts: [{ text: `[role:${role}] ${q}` }] }],
@@ -87,6 +88,14 @@ export async function geminiReviewSummary(reviews: string[]): Promise<string | n
 }
 
 // ---------- Built-in fallback brain (English-first, Tamil optional) ----------
+/** Extract a rupee budget from free text ("under 3000", "budget 5000", "3000"). */
+export function extractBudget(q: string): number | null {
+  const m = q.replace(/,/g, '').match(/(\d{3,6})/);
+  if (!m) return null;
+  const v = +m[1];
+  return v >= 500 && v <= 100000 ? v : null;
+}
+
 function pickFarms(q: string, list: Farm[]) {
   const t = q.toLowerCase();
   const hit = list.filter(f =>
@@ -101,19 +110,29 @@ export function localAnswer(q: string, role: 'home' | 'tourist' | 'farmer' | 'gu
   const src = liveFarms && liveFarms.length ? liveFarms : FARMS;
   const L = detectLang(q);
   const t = q.toLowerCase();
-  const farms = pickFarms(q, src);
+  const budget = extractBudget(q);
+  // Budget-first: NEVER list everything when a budget is stated — only what fits.
+  const pool = budget ? src.filter(f => f.pricePerDay <= budget) : src;
+  const farms = (pool.length ? pickFarms(q, pool) : [...src].sort((a, b) => a.pricePerDay - b.pricePerDay).slice(0, 2));
   const line = (f: Farm) => `- ${f.name} (${f.region}) — Rs.${f.pricePerDay}/day, ${f.rating} stars`;
   const farmTxt = farms.map(line).join('\n');
+  const budgetNote = budget
+    ? (pool.length
+      ? (L === 'ta' ? `\n\nRs.${budget} பட்ஜெட்டுக்குள் வரும் தேர்வுகள் மட்டும்:` : `\n\nOnly options within your Rs.${budget} budget:`)
+      : (L === 'ta' ? `\n\nRs.${budget}-க்குள் பண்ணை இல்லை — மலிவான 2:` : `\n\nNothing fits Rs.${budget} — closest affordable 2:`))
+    : '';
   if (/price|cost|budget|rate|விலை/.test(t)) {
     return L === 'ta'
-      ? `கட்டண விவரம்:\n${farmTxt}\n\n1-day Rs.3499 முதல், 2-day Rs.8499, 3-day Rs.13499. Transport/food/stay optional. Payment-க்கு பிறகு 1 மணி நேரத்தில் Admin verify செய்வார்.`
-      : `Pricing guide:\n${farmTxt}\n\n1-day from Rs.999, 2-day Rs.8499, 3-day Rs.13499. Transport, food and stay are optional. After payment, Admin verifies within 1 hour.`;
+      ? `கட்டண விவரம்:${budgetNote}\n${farmTxt}\n\n1-day Rs.3499 முதல், 2-day Rs.8499, 3-day Rs.13499. Transport/food/stay optional. Payment-க்கு பிறகு 1 மணி நேரத்தில் Admin verify செய்வார்.`
+      : `Pricing guide:${budgetNote}\n${farmTxt}\n\n1-day from Rs.3499, 2-day Rs.8499, 3-day Rs.13499. Transport, food and stay are optional. After payment, Admin verifies within 1 hour.`;
   }
   if (/plan|trip|itinerary|days|1-day|2-day|3-day|நாள்|திட்டம்/.test(t)) {
-    const p = PLANS.map(x => `- ${x.title} — Rs.${x.price}: ${x.itinerary.join(' > ')}`).join('\n');
+    const plans = budget ? PLANS.filter(x => x.price <= budget) : PLANS;
+    const plist = (plans.length ? plans : [...PLANS].sort((a, b) => a.price - b.price).slice(0, 1));
+    const p = plist.map(x => `- ${x.title} — Rs.${x.price}: ${x.itinerary.join(' > ')}`).join('\n');
     return L === 'ta'
-      ? `பயண திட்டங்கள்:\n${p}\n\nபரிந்துரைகள்:\n${farmTxt}\nPlan உருவாக்குவது booking ஆகாது — Confirm செய்தால் மட்டுமே booking.`
-      : `Tour plans:\n${p}\n\nRecommended farms:\n${farmTxt}\nGenerating a plan does NOT create a booking — only your Confirm does.`;
+      ? `பயண திட்டங்கள்:${budgetNote}\n${p}\n\nபரிந்துரைகள்:\n${farmTxt}\nPlan உருவாக்குவது booking ஆகாது — Confirm செய்தால் மட்டுமே booking.`
+      : `Tour plans:${budgetNote}\n${p}\n\nRecommended farms:\n${farmTxt}\nGenerating a plan does NOT create a booking — only your Confirm does.`;
   }
   if (role === 'farmer') {
     return L === 'ta'
@@ -125,14 +144,14 @@ export function localAnswer(q: string, role: 'home' | 'tourist' | 'farmer' | 'gu
       ? `Guide உதவி:\n${farmTxt}\n\nFarm activities + season crops தயார் செய்யுங்கள். Assigned விவரங்கள் dashboard-ல் உள்ளன. Profile photo upload செய்யுங்கள்.`
       : `Guide help:\n${farmTxt}\n\nPrepare farm activities and seasonal-crop notes. Assigned farm and tourist details are on your dashboard. Please upload a profile photo.`;
   }
-  if (/pollachi|ooty|thanjavur|madurai|theni|kodaikanal|coconut|paddy|grape|honey|millet|jasmine|book|cancel|refund|payment/.test(t)) {
+  if (/pollachi|ooty|thanjavur|madurai|theni|kodaikanal|coconut|paddy|grape|honey|millet|jasmine|turmeric|mango|cotton|banana|sugarcane|book|cancel|refund|payment/.test(t)) {
     return L === 'ta'
-      ? `பொருத்தமான பண்ணைகள்:\n${farmTxt}\n\nDate + visitors தேர்ந்து booking செய்யலாம். Free cancellation 24 மணி நேரம் வரை.`
-      : `Matching farms:\n${farmTxt}\n\nPick a date and group size to book. Free cancellation up to 24 hours before the visit.`;
+      ? `பொருத்தமான பண்ணைகள்:${budgetNote}\n${farmTxt}\n\nDate + visitors தேர்ந்து booking செய்யலாம். முன்பதிவு செய்த 18 மணி நேரத்திற்குள் இலவச ரத்து.`
+      : `Matching farms:${budgetNote}\n${farmTxt}\n\nPick a date and group size to book. Free cancellation within 18 hours of booking.`;
   }
   return L === 'ta'
-    ? `வணக்கம்! Farm Vibe உதவியாளர்.\n\n${farmTxt}\n\n"Pollachi coconut", "2-day plan", "booking எப்படி?" என்று கேளுங்கள்.`
-    : `Hello! I'm the Farm Vibe assistant (powered by Gemini).\n\n${farmTxt}\n\nAsk "Pollachi coconut farm", "2-day plan under 2500" or "how do I book?". Speak or type — English and Tamil supported.`;
+    ? `வணக்கம்! VAYALOO உதவியாளர்.\n\n${farmTxt}\n\n"Pollachi coconut", "2-day plan", "booking எப்படி?" என்று கேளுங்கள்.`
+    : `Hello! I'm the VAYALOO assistant.\n\n${farmTxt}\n\nAsk "Pollachi coconut farm", "2-day plan under 2500" or "how do I book?". Speak or type — English and Tamil supported.`;
 }
 
 /** Unified entry: live Gemini (fast) with instant fallback. Cached per question. */
@@ -162,7 +181,7 @@ function localThoughts(q: string, role: string): string[] {
   else if (role === 'farmer') steps.push('Intent = farmer support. Checked visitor-readiness and capacity rules.');
   else if (role === 'guide') steps.push('Intent = guide support. Checked assigned-tour context rules.');
   else steps.push('Intent = discovery. Matched keywords against regions, crops and activities.');
-  steps.push('Composed answer strictly from verified Farm Vibe data — no invented details.');
+  steps.push('Composed answer strictly from verified VAYALOO data — no invented details.');
   return steps;
 }
 

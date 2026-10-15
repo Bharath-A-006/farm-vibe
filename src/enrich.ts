@@ -24,7 +24,7 @@ export const FARM_EXTRA: Record<string, FarmExtra> = {
     durationHrs: 6, slots: ['8:00 AM', '10:30 AM', '2:00 PM'], timeOfDay: ['Morning', 'Afternoon', 'Full Day'],
     languages: ['Tamil', 'English'], tags: ['Free cancellation', 'Likely to Sell Out'],
     dealEndsInDays: 3, mrp: 4299, sellout: true,
-    pickup: 'Pollachi Bus Stand arch — guide holds a green Farm Vibe flag. Free parking inside the farm gate.',
+    pickup: 'Pollachi Bus Stand arch — guide holds a green VAYALOO flag. Free parking inside the farm gate.',
     mapNote: '12 km from Pollachi town, tar road till gate. Share live location on booking day.',
     included: [
       { ok: true, text: 'Guided coconut grove walk (90 min)' },
@@ -182,7 +182,7 @@ export const usdt = (inr: number) => (inr / USDT_RATE).toFixed(2);
 export function extraFor(f: Farm): FarmExtra {
   return {
     durationHrs: 5,
-    slots: ['9:00 AM', '2:00 PM'],
+    slots: f.slots && f.slots.length ? f.slots : ['9:00 AM', '2:00 PM'],
     timeOfDay: ['Morning', 'Afternoon'],
     languages: ['Tamil', 'English'],
     tags: ['Free cancellation'],

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDB } from '../store';
-import { ProfileHead, PhotoPrompt, Avatar } from '../profile';
+import { ProfileHead, PhotoPrompt, Avatar, SyncBadge } from '../profile';
 import { tx, FARMS as SEED_FARMS } from '../data';
 import { usdt } from '../enrich';
 import { I } from '../icons';
@@ -39,7 +39,7 @@ export default function Tourist() {
   return (
     <div className="dash">
       <div className="side">
-        <div className="row"><Avatar u={user} size={40} /><div><b style={{ color: '#fff' }}>{user.name}</b><br /><span className="mut" style={{ color: '#9fc3b2' }}>Tourist</span></div></div>
+        <div className="row"><Avatar u={user} size={40} /><div><b style={{ color: '#fff' }}>{user.name}</b><br /><span className="mut" style={{ color: '#9fc3b2' }}>Tourist</span> <SyncBadge /></div></div>
         {side.map(([k, ic]) => <a key={k} className={tab === k ? 'on' : ''} href="#" onClick={e => { e.preventDefault(); setTab(k); }}>{ic}{sideLabel[k]}{k === 'my' && myB.length > 0 ? ` (${myB.length})` : ''}</a>)}
         <div style={{ marginTop: 10 }}><b>Notifications ({myN.filter(n => !n.read).length})</b>{myN.slice(0, 4).map(n => <div key={n.id} style={{ fontSize: 12, background: '#ffffff14', padding: 8, borderRadius: 10, marginTop: 6 }}>{n.text}<br /><button className="btn btn-sm" style={{ background: '#ffffff2a', color: '#fff' }} onClick={() => db.markRead(n.id)}>mark read</button></div>)}</div>
       </div>
@@ -76,9 +76,16 @@ export default function Tourist() {
               <div>{b.farmName} • {b.date}{b.slot ? ` • ${b.slot}` : ''} • {b.visitors} guests • Rs.{b.total} via {b.payMethod}</div>
               <div className="mut">TXN {b.txnRef} • {b.payAt}{b.guideName ? ` • Guide: ${b.guideName}` : ''}</div>
               {b.payStatus === 'Pending Admin Verification' && <div className="alert alert-y">Payment received — awaiting Admin verification (within 1 hour). Expected by 1 hour from {b.payAt}.</div>}
-              {b.payStatus === 'Confirmed' && <div className="alert alert-g">Confirmed. Show this ID at the farm gate. Free cancellation up to 24h before.</div>}
+              {b.payStatus === 'Confirmed' && <div className="alert alert-g">Confirmed. Show this ID at the farm gate. Free cancellation within 18h of booking.</div>}
               {b.payStatus === 'Rejected' && <div className="alert alert-r">Rejected: {b.rejectReason}</div>}
-              {b.bookStatus !== 'Cancelled' && b.bookStatus !== 'Completed' && <button className="btn btn-o btn-sm" onClick={() => db.cancelBooking(b.id)}>Cancel (refund pending)</button>}
+              {b.bookStatus !== 'Cancelled' && b.bookStatus !== 'Completed' && (
+                <div className="row" style={{ marginTop: 6 }}>
+                  <button className="btn btn-o btn-sm" onClick={() => { if (confirm('Cancel this booking? Refund applies only within 18 hours of booking.')) db.cancelBooking(b.id); }}>Cancel booking</button>
+                  <span className="mut">{Date.now() - (b.createdAt || Date.now()) <= 18 * 60 * 60 * 1000 ? 'Refund eligible (18h window)' : 'Outside 18h window — no refund'}</span>
+                </div>
+              )}
+              {b.bookStatus === 'Cancelled' && b.payStatus === 'No Refund' && <div className="alert alert-r">Cancelled outside the 18-hour window — no refund as per terms.</div>}
+              {b.bookStatus === 'Cancelled' && b.payStatus === 'Refund Pending' && <div className="alert alert-y">Cancelled within 18 hours — refund is being processed.</div>}
             </div></div>
           ))}
         </>}

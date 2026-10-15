@@ -1,4 +1,4 @@
-# Farm Vibe — Deploy to Live URL (3 proven paths)
+# VAYALOO — Deploy to Live URL (3 proven paths)
 
 Repo is git-ready (`git log` shows v1 commit). `vercel.json` is configured
 (framework=vite, build=`npm run build`, output=`dist`). Build is verified clean.
@@ -37,7 +37,7 @@ You get the live URL at the end. (First time opens a browser tab to login.)
 - [ ] Home loads, hero + logo + stats visible.
 - [ ] `/farms` → filter → farm detail → slot + date → checkout works.
 - [ ] Login as tourist (`divya@demo.in` / `demo123`).
-- [ ] Admin: `/panel-verify-login` → `admin@farmvibe.in` / `admin123`.
+- [ ] Admin: `/panel-verify-login` → `admin@vayaloo.in` / `admin123`.
 - [ ] Chatbot replies instantly (fallback brain works without any key).
 - [ ] Mobile view (DevTools responsive mode) — bottom Book bar visible.
 
